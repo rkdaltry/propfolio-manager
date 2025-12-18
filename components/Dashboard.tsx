@@ -101,84 +101,77 @@ const Dashboard: React.FC = () => {
     }, [properties]);
 
     return (
-        <div className="p-8 max-w-7xl mx-auto space-y-8 animate-fade-in pb-20">
-            {/* Header */}
-            <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-                <div>
-                    <h1 className="text-3xl font-bold text-slate-900 tracking-tight">Dashboard</h1>
-                    <p className="text-slate-500 mt-1">Welcome back, here's what's happening today.</p>
-                </div>
+        <div className="p-8 lg:p-12 w-full mx-auto space-y-10 animate-fade-in">
+            <div className="flex justify-end">
                 <div className="flex gap-3">
-                    <button onClick={() => navigate('/properties')} className="bg-white text-slate-700 border border-slate-200 px-4 py-2 rounded-xl font-semibold text-sm hover:bg-slate-50 transition-colors shadow-sm">
+                    <button onClick={() => navigate('/properties')} className="px-6 py-3 bg-white dark:bg-slate-800 text-slate-700 dark:text-slate-200 rounded-2xl font-bold border border-slate-200 dark:border-slate-700 hover:shadow-lg transition-all flex items-center gap-2">
                         View Properties
                     </button>
-                    <button onClick={() => navigate('/properties')} className="bg-blue-600 text-white px-4 py-2 rounded-xl font-semibold text-sm hover:bg-blue-700 transition-colors shadow-sm shadow-blue-200 flex items-center gap-2">
-                        <Plus size={18} /> Add Property
+                    <button onClick={() => navigate('/properties')} className="px-6 py-3 bg-blue-600 dark:bg-blue-500 text-white rounded-2xl font-bold shadow-xl shadow-blue-600/20 hover:scale-105 transition-all flex items-center gap-2">
+                        <Plus size={20} className="font-bold" /> Add Property
                     </button>
                 </div>
             </div>
 
             {/* Stats Grid */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-6">
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                <div className="premium-card h-40 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Total Properties</p>
-                            <h3 className="text-3xl font-bold text-slate-900 mt-1">{properties.length}</h3>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Total Properties</p>
+                            <h3 className="text-4xl font-black text-slate-900 dark:text-slate-50 mt-2">{properties.length}</h3>
                         </div>
-                        <div className="p-2 bg-blue-50 text-blue-600 rounded-lg">
-                            <Building2 size={20} />
+                        <div className="p-3 bg-blue-50 dark:bg-blue-100/50 text-blue-600 dark:text-blue-700 rounded-2xl">
+                            <Building2 size={24} />
                         </div>
                     </div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-emerald-600 bg-emerald-50 w-fit px-2 py-1 rounded-full">
-                        <ArrowUpRight size={12} />
+                    <div className="flex items-center gap-1.5 text-xs font-black text-emerald-600 bg-emerald-50 dark:bg-emerald-100/50 w-fit px-3 py-1 rounded-full uppercase tracking-wider">
+                        <ArrowUpRight size={14} />
                         <span>Active Portfolio</span>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                <div className="premium-card h-40 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Occupancy Rate</p>
-                            <h3 className="text-3xl font-bold text-slate-900 mt-1">{stats.occupancyRate}%</h3>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Occupancy Rate</p>
+                            <h3 className="text-4xl font-black text-slate-900 dark:text-slate-50 mt-2">{stats.occupancyRate}%</h3>
                         </div>
-                        <div className="p-2 bg-purple-50 text-purple-600 rounded-lg">
-                            <Users size={20} />
+                        <div className="p-3 bg-purple-50 dark:bg-purple-100/50 text-purple-600 dark:text-purple-700 rounded-2xl">
+                            <Users size={24} />
                         </div>
                     </div>
-                    <div className="w-full bg-slate-100 h-1.5 rounded-full mt-2 overflow-hidden">
-                        <div className="bg-purple-500 h-full rounded-full" style={{ width: `${stats.occupancyRate}%` }}></div>
+                    <div className="w-full bg-slate-100 dark:bg-slate-200 h-2 rounded-full overflow-hidden">
+                        <div className="bg-gradient-to-r from-purple-500 to-indigo-500 h-full rounded-full" style={{ width: `${stats.occupancyRate}%` }}></div>
                     </div>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                <div className="premium-card h-40 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Monthly Revenue</p>
-                            <h3 className="text-3xl font-bold text-slate-900 mt-1">£{financialStats.month.income.toLocaleString()}</h3>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Monthly Revenue</p>
+                            <h3 className="text-4xl font-black text-slate-900 dark:text-slate-50 mt-2">£{financialStats.month.income.toLocaleString()}</h3>
                         </div>
-                        <div className="p-2 bg-emerald-50 text-emerald-600 rounded-lg">
-                            <Wallet size={20} />
+                        <div className="p-3 bg-emerald-50 dark:bg-emerald-100/50 text-emerald-600 dark:text-emerald-700 rounded-2xl">
+                            <FileText size={24} />
                         </div>
                     </div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-slate-500">
-                        <span>vs last month</span>
-                    </div>
+                    <p className="text-xs font-bold text-slate-400 dark:text-slate-500 uppercase tracking-widest">vs last month</p>
                 </div>
 
-                <div className="bg-white p-6 rounded-2xl shadow-sm border border-slate-100 flex flex-col justify-between h-32">
+                <div className="premium-card h-40 flex flex-col justify-between">
                     <div className="flex justify-between items-start">
                         <div>
-                            <p className="text-sm font-medium text-slate-500">Net Profit</p>
-                            <h3 className={`text-3xl font-bold mt-1 ${financialStats.month.profit >= 0 ? 'text-slate-900' : 'text-red-600'}`}>
+                            <p className="text-sm font-bold text-slate-500 uppercase tracking-widest">Net Profit</p>
+                            <h3 className={`text-4xl font-black mt-2 ${financialStats.month.profit >= 0 ? 'text-slate-900 dark:text-slate-50' : 'text-red-600'}`}>
                                 £{financialStats.month.profit.toLocaleString()}
                             </h3>
                         </div>
-                        <div className="p-2 bg-amber-50 text-amber-600 rounded-lg">
-                            <TrendingUp size={20} />
+                        <div className="p-3 bg-amber-50 dark:bg-amber-100/50 text-amber-600 dark:text-amber-700 rounded-2xl">
+                            <TrendingUp size={24} />
                         </div>
                     </div>
-                    <div className="flex items-center gap-1 text-xs font-medium text-slate-500">
+                    <div className="flex items-center gap-1.5 text-xs font-black text-slate-500 dark:text-slate-400 uppercase tracking-widest">
                         <span>Current Month</span>
                     </div>
                 </div>
@@ -188,14 +181,14 @@ const Dashboard: React.FC = () => {
                 {/* Main Content Area */}
                 <div className="lg:col-span-2 space-y-8">
                     {/* Properties List */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="font-bold text-slate-900 text-lg">Properties Overview</h3>
+                    <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-800 overflow-hidden transition-colors duration-300">
+                        <div className="p-6 border-b border-slate-200 dark:border-slate-700/50 flex justify-between items-center">
+                            <h3 className="font-bold text-slate-900 dark:text-slate-50 text-lg">Properties Overview</h3>
                             <button onClick={() => navigate('/properties')} className="text-blue-600 text-sm font-semibold hover:text-blue-700 flex items-center gap-1">
                                 View All <ChevronRight size={16} />
                             </button>
                         </div>
-                        <div className="divide-y divide-slate-100">
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800">
                             {properties.slice(0, 5).map(property => {
                                 const compliance = getComplianceStatus(property);
                                 const liveTenants = property.tenants.filter(t => !t.isDeleted);
@@ -204,7 +197,7 @@ const Dashboard: React.FC = () => {
                                 const vacant = Math.max(0, propCapacity - occupiedCount);
 
                                 return (
-                                    <div key={property.id} onClick={() => navigate(`/properties/${property.id}`)} className="p-4 hover:bg-slate-50 transition-colors cursor-pointer flex items-center gap-4 group">
+                                    <div key={property.id} onClick={() => navigate(`/properties/${property.id}`)} className="p-4 hover:bg-slate-100 dark:hover:bg-slate-800 transition-colors cursor-pointer flex items-center gap-4 group">
                                         <img src={property.imageUrl} alt={property.address} className="w-16 h-12 object-cover rounded-lg shadow-sm bg-slate-200" />
                                         <div className="flex-1 min-w-0">
                                             <h4 className="font-bold text-slate-900 text-sm truncate group-hover:text-blue-600 transition-colors">{property.address.split(',')[0]}</h4>
@@ -235,8 +228,8 @@ const Dashboard: React.FC = () => {
 
                     {/* Financial Chart Section */}
                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6">
-                            <h3 className="font-bold text-slate-900 text-lg mb-6">Occupancy Split</h3>
+                        <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700/50 p-6 transition-colors duration-300">
+                            <h3 className="font-bold text-slate-900 dark:text-slate-50 text-lg mb-6">Occupancy Split</h3>
                             <div className="h-64 w-full relative">
                                 <ResponsiveContainer width="100%" height="100%">
                                     <PieChart>
@@ -259,8 +252,8 @@ const Dashboard: React.FC = () => {
                                     </PieChart>
                                 </ResponsiveContainer>
                                 <div className="absolute inset-0 flex flex-col items-center justify-center pointer-events-none">
-                                    <span className="text-3xl font-bold text-slate-900">{stats.totalUnits}</span>
-                                    <span className="text-xs font-medium text-slate-400 uppercase tracking-wider">Units</span>
+                                    <span className="text-3xl font-bold text-slate-900 dark:text-slate-50">{stats.totalUnits}</span>
+                                    <span className="text-xs font-medium text-slate-400 dark:text-slate-500 uppercase tracking-wider">Units</span>
                                 </div>
                             </div>
                             <div className="flex justify-center gap-6 mt-4">
@@ -275,24 +268,24 @@ const Dashboard: React.FC = () => {
                             </div>
                         </div>
 
-                        <div className="bg-white rounded-2xl shadow-sm border border-slate-100 p-6 flex flex-col">
-                            <h3 className="font-bold text-slate-900 text-lg mb-4">Recent Transactions</h3>
+                        <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-700/50 p-6 flex flex-col transition-colors duration-300">
+                            <h3 className="font-bold text-slate-900 dark:text-slate-50 text-lg mb-4">Recent Transactions</h3>
                             <div className="flex-1 overflow-y-auto pr-2 space-y-3 custom-scrollbar">
                                 {properties.flatMap(p => (p.transactions || []).map(t => ({ ...t, propertyAddress: p.address })))
                                     .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
                                     .slice(0, 6)
                                     .map(tx => (
-                                        <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+                                        <div key={tx.id} className="flex items-center justify-between p-3 rounded-xl hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors border border-transparent hover:border-slate-100 dark:hover:border-slate-700">
                                             <div className="flex items-center gap-3">
                                                 <div className={`p-2 rounded-lg ${tx.type === 'Income' ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
                                                     {tx.type === 'Income' ? <ArrowDownRight size={16} /> : <ArrowUpRight size={16} />}
                                                 </div>
                                                 <div>
-                                                    <p className="text-sm font-bold text-slate-900">{tx.description || tx.category}</p>
-                                                    <p className="text-xs text-slate-500">{new Date(tx.date).toLocaleDateString()}</p>
+                                                    <p className="text-sm font-bold text-slate-900 dark:text-slate-50">{tx.description || tx.category}</p>
+                                                    <p className="text-xs text-slate-500 dark:text-slate-100">{new Date(tx.date).toLocaleDateString()}</p>
                                                 </div>
                                             </div>
-                                            <span className={`text-sm font-bold ${tx.type === 'Income' ? 'text-emerald-600' : 'text-slate-900'}`}>
+                                            <span className={`text-sm font-bold ${tx.type === 'Income' ? 'text-emerald-600' : 'text-slate-900 dark:text-slate-50'}`}>
                                                 {tx.type === 'Income' ? '+' : '-'}£{Number(tx.amount).toLocaleString()}
                                             </span>
                                         </div>
@@ -337,12 +330,12 @@ const Dashboard: React.FC = () => {
                     </div>
 
                     {/* Action Center */}
-                    <div className="bg-white rounded-2xl shadow-sm border border-slate-100 overflow-hidden">
-                        <div className="p-5 border-b border-slate-100 flex justify-between items-center">
-                            <h3 className="font-bold text-slate-900">Action Center</h3>
+                    <div className="bg-white dark:bg-slate-850 rounded-2xl shadow-sm border border-slate-300 dark:border-slate-800 overflow-hidden transition-colors duration-300">
+                        <div className="p-5 border-b border-slate-200 dark:border-slate-800 flex justify-between items-center">
+                            <h3 className="font-bold text-slate-900 dark:text-white">Action Center</h3>
                             {reminders.length > 0 && <span className="bg-red-100 text-red-600 text-xs font-bold px-2 py-0.5 rounded-full">{reminders.length}</span>}
                         </div>
-                        <div className="divide-y divide-slate-100 max-h-[400px] overflow-y-auto">
+                        <div className="divide-y divide-slate-100 dark:divide-slate-800 max-h-[400px] overflow-y-auto">
                             {reminders.length === 0 ? (
                                 <div className="p-8 text-center text-slate-400">
                                     <CheckCircle2 size={32} className="mx-auto mb-3 text-emerald-500" />
@@ -350,13 +343,13 @@ const Dashboard: React.FC = () => {
                                 </div>
                             ) : (
                                 reminders.map((item) => (
-                                    <div key={item.id} className="p-4 hover:bg-slate-50 transition-colors flex gap-3">
-                                        <div className={`mt-0.5 p-1.5 rounded-lg h-fit ${item.type === 'urgent' ? 'bg-red-100 text-red-600' : item.type === 'warning' ? 'bg-amber-100 text-amber-600' : 'bg-blue-100 text-blue-600'}`}>
+                                    <div key={item.id} className="p-4 hover:bg-slate-50 dark:hover:bg-slate-800 transition-colors flex gap-3">
+                                        <div className={`mt-0.5 p-1.5 rounded-lg h-fit ${item.type === 'urgent' ? 'bg-red-100 dark:bg-red-100/50 text-red-600 dark:text-red-700' : item.type === 'warning' ? 'bg-amber-100 dark:bg-amber-100/50 text-amber-600 dark:text-amber-700' : 'bg-blue-100 dark:bg-blue-100/50 text-blue-600 dark:text-blue-700'}`}>
                                             <item.icon size={16} />
                                         </div>
                                         <div>
-                                            <h4 className="text-sm font-bold text-slate-800">{item.title}</h4>
-                                            <p className="text-xs text-slate-500 mt-0.5">{item.subtitle}</p>
+                                            <h4 className="text-sm font-bold text-slate-800 dark:text-slate-50">{item.title}</h4>
+                                            <p className="text-xs text-slate-500 dark:text-slate-100 mt-0.5">{item.subtitle}</p>
                                         </div>
                                     </div>
                                 ))

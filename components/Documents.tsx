@@ -1,163 +1,176 @@
 import React, { useState } from 'react';
 import { useData } from '../DataContext';
-import { Document } from '../types';
-import { Files, FileText, Upload, ExternalLink, X, Search, Filter } from 'lucide-react';
-import { handleOpenDocument } from '../utils';
+import { Building2, Users, Search, ChevronRight, FileText } from 'lucide-react';
+import DocumentManager from './DocumentManager';
 
-interface DocumentsPageProps {
-  mode?: 'property' | 'tenant';
-}
-
-const DocumentsPage: React.FC<DocumentsPageProps> = ({ mode = 'property' }) => {
-  const { properties, updateProperty } = useData();
-  const [isUploadModalOpen, setIsUploadModalOpen] = useState(false);
-  const [uploadData, setUploadData] = useState<{ propertyId: string; category: string; name: string; expiryDate: string; fileUrl: string; fileType: string; }>({ propertyId: '', category: 'Compliance', name: '', expiryDate: '', fileUrl: '', fileType: '' });
+const DocumentsPage: React.FC = () => {
+  const { properties } = useData();
+  const [selectedType, setSelectedType] = useState<'property' | 'tenant' | null>(null);
+  const [selectedEntityId, setSelectedEntityId] = useState<string | null>(null);
   const [searchTerm, setSearchTerm] = useState('');
 
-  const title = mode === 'tenant' ? 'Tenant Documents' : 'Property Documents';
-  const description = mode === 'tenant' ? 'Central repository for all tenant-related files.' : 'Central repository for all property-related files.';
-
-  const allDocs = properties.reduce((acc: Array<Document & { propertyAddress: string; tenantName?: string }>, p) => {
-    if (mode === 'tenant') {
-      return acc.concat(p.tenants.flatMap(t => (t.documents || []).map(d => ({ ...d, propertyAddress: p.address, tenantName: t.name }))));
-    } else {
-      return acc.concat(p.documents.map(d => ({ ...d, propertyAddress: p.address })));
-    }
-  }, []).filter(doc =>
-    doc.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    doc.category.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    (doc.tenantName && doc.tenantName.toLowerCase().includes(searchTerm.toLowerCase())) ||
-    doc.propertyAddress.toLowerCase().includes(searchTerm.toLowerCase())
+  const propertiesList = properties.filter(p =>
+    p.address.toLowerCase().includes(searchTerm.toLowerCase())
   );
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (file) {
-      const reader = new FileReader();
-      reader.onload = (ev) => {
-        setUploadData(prev => ({ ...prev, name: file.name, fileType: file.type.split('/')[1]?.toUpperCase() || 'FILE', fileUrl: ev.target?.result as string }));
-      };
-      reader.readAsDataURL(file);
-    }
+  const tenantsList = properties.flatMap(p =>
+    p.tenants.filter(t => !t.isDeleted).map(t => ({
+      ...t,
+      propertyAddress: p.address
+    }))
+  ).filter(t =>
+    t.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    t.propertyAddress.toLowerCase().includes(searchTerm.toLowerCase())
+  );
+
+  const handleSelectEntity = (id: string, type: 'property' | 'tenant') => {
+    setSelectedEntityId(id);
+    setSelectedType(type);
   };
 
-  const handleSaveDocument = (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!uploadData.propertyId || !uploadData.fileUrl) return;
-    const newDoc: Document = { id: `doc_${Date.now()}`, name: uploadData.name, type: uploadData.fileType || 'FILE', uploadDate: new Date().toISOString(), url: uploadData.fileUrl, category: uploadData.category, expiryDate: uploadData.expiryDate || undefined };
-    const property = properties.find(p => p.id === uploadData.propertyId);
-    if (property) {
-      updateProperty({ ...property, documents: [...property.documents, newDoc] });
+  const getSelectedName = () => {
+    if (!selectedEntityId || !selectedType) return '';
+    if (selectedType === 'property') {
+      return properties.find(p => p.id === selectedEntityId)?.address || 'Property';
+    } else {
+      const tenant = properties.flatMap(p => p.tenants).find(t => t.id === selectedEntityId);
+      return tenant?.name || 'Tenant';
     }
-    setIsUploadModalOpen(false);
-    setUploadData({ propertyId: '', category: 'Compliance', name: '', expiryDate: '', fileUrl: '', fileType: '' });
   };
 
   return (
-    <div className="p-8 lg:p-10 w-full mx-auto animate-fade-in pb-20">
-      <div className="flex flex-col md:flex-row justify-between items-center gap-6 mb-8">
-        <div>
-          <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-            {mode === 'tenant' ? <Files className="text-blue-600" size={32} /> : <FileText className="text-blue-600" size={32} />}
-            {title}
-          </h1>
-          <p className="text-slate-500 mt-1">{description}</p>
-        </div>
-        {mode === 'property' && (
-          <button onClick={() => setIsUploadModalOpen(true)} className="bg-blue-600 hover:bg-blue-700 text-white px-5 py-2.5 rounded-xl flex items-center gap-2 transition-colors shadow-sm shadow-blue-200 whitespace-nowrap font-bold text-sm">
-            <Upload size={18} /> Upload Document
-          </button>
-        )}
+    <div className="p-8 lg:p-10 w-full mx-auto animate-fade-in pb-20 max-w-7xl">
+      {/* Header Area */}
+      <div className="mb-10">
+        <h1 className="text-3xl font-black text-slate-900 dark:text-slate-50 mb-2">Portfolio Documents</h1>
+        <p className="text-slate-500 dark:text-slate-400">Access and manage all your property and tenant documentation in one place.</p>
       </div>
 
-      {/* Search & Filter */}
-      <div className="bg-white p-4 rounded-xl shadow-sm border border-slate-200 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between">
-        <div className="relative w-full md:w-96">
-          <Search size={18} className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400" />
-          <input
-            type="text"
-            placeholder={`Search ${mode} documents...`}
-            value={searchTerm}
-            onChange={(e) => setSearchTerm(e.target.value)}
-            className="w-full pl-10 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-lg text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all"
-          />
-        </div>
-      </div>
-
-      {allDocs.length === 0 ? (
-        <div className="bg-white p-16 rounded-xl border border-dashed border-slate-300 text-center">
-          {mode === 'tenant' ? <Files className="mx-auto text-slate-300 mb-4" size={64} /> : <FileText className="mx-auto text-slate-300 mb-4" size={64} />}
-          <p className="text-slate-500 text-lg font-medium">No documents found.</p>
-          <p className="text-slate-400 text-sm mt-1">Try adjusting your search or upload a new document.</p>
-        </div>
-      ) : (
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6 animate-fade-in">
-          {allDocs.map(doc => (
-            <div key={doc.id} onClick={() => handleOpenDocument(doc)} className="bg-white p-6 rounded-xl shadow-sm border border-slate-200 hover:shadow-md hover:border-blue-300 transition-all group cursor-pointer flex flex-col h-full relative overflow-hidden">
-              <div className="absolute top-0 left-0 w-1 h-full bg-blue-500 opacity-0 group-hover:opacity-100 transition-opacity"></div>
-              <div className="flex items-start justify-between mb-4">
-                <div className="bg-blue-50 p-3 rounded-xl text-blue-600 group-hover:bg-blue-100 transition-colors">
-                  {mode === 'tenant' ? <Files size={24} /> : <FileText size={24} />}
+      {!selectedEntityId ? (
+        <div className="space-y-10">
+          {/* View Selection Cards */}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <button
+              onClick={() => setSelectedType(selectedType === 'property' ? null : 'property')}
+              className={`premium-card p-8 text-left transition-all ${selectedType === 'property' ? 'ring-2 ring-blue-500 bg-blue-50/30' : ''}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-blue-100 dark:bg-blue-900/40 text-blue-600 dark:text-blue-400 rounded-2xl">
+                  <Building2 size={32} />
                 </div>
-                <div className="text-right">
-                  <div className="text-[10px] font-bold uppercase tracking-wider text-slate-500 mb-1">{doc.category}</div>
-                  <div className="text-[10px] font-mono text-slate-400 bg-slate-100 px-2 py-0.5 rounded inline-block border border-slate-200">{doc.type}</div>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Property Documents</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">Manage leases, certificates, and insurance.</p>
                 </div>
               </div>
-              <h3 className="font-bold text-slate-900 text-lg mb-1 truncate group-hover:text-blue-600 transition-colors" title={doc.name}>{doc.name}</h3>
-              <p className="text-xs text-slate-500 mb-6 flex items-center gap-1">
-                {doc.tenantName && <span className="font-semibold text-slate-700 mr-1">{doc.tenantName} •</span>}
-                {doc.propertyAddress.split(',')[0]}
-              </p>
-              <div className="pt-4 border-t border-slate-100 flex justify-between items-center text-xs text-slate-400 mt-auto">
-                <div>
-                  {doc.expiryDate && <span className={`block text-xs font-medium mb-0.5 ${new Date(doc.expiryDate) < new Date() ? 'text-red-500' : 'text-slate-500'}`}>Exp: {new Date(doc.expiryDate).toLocaleDateString()}</span>}
-                  <span className="text-xs opacity-80">Added: {new Date(doc.uploadDate).toLocaleDateString()}</span>
+            </button>
+
+            <button
+              onClick={() => setSelectedType(selectedType === 'tenant' ? null : 'tenant')}
+              className={`premium-card p-8 text-left transition-all ${selectedType === 'tenant' ? 'ring-2 ring-slate-800 bg-slate-50/50' : ''}`}
+            >
+              <div className="flex items-center gap-4">
+                <div className="p-4 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-300 rounded-2xl">
+                  <Users size={32} />
                 </div>
-                {doc.url && (
-                  <span className="text-blue-600 group-hover:underline flex items-center gap-1 font-bold text-xs bg-blue-50 px-2 py-1 rounded-lg group-hover:bg-blue-100 transition-colors">
-                    View <ExternalLink size={12} />
-                  </span>
+                <div>
+                  <h3 className="text-xl font-bold text-slate-900 dark:text-slate-50">Tenant Documents</h3>
+                  <p className="text-sm text-slate-500 dark:text-slate-400">ID docs, references, and correspondence.</p>
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Entity List */}
+          {selectedType && (
+            <div className="space-y-6 animate-slide-up">
+              <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+                <h2 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
+                  Select {selectedType === 'property' ? 'Property' : 'Tenant'}
+                </h2>
+                <div className="relative w-full md:w-80">
+                  <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-slate-400" size={18} />
+                  <input
+                    type="text"
+                    placeholder={`Search ${selectedType}s...`}
+                    value={searchTerm}
+                    onChange={(e) => setSearchTerm(e.target.value)}
+                    className="w-full pl-12 pr-4 py-3 bg-white dark:bg-slate-900/50 border border-slate-200 dark:border-slate-800 rounded-2xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all dark:text-slate-50"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                {selectedType === 'property' ? (
+                  propertiesList.map(p => (
+                    <button
+                      key={p.id}
+                      onClick={() => handleSelectEntity(p.id, 'property')}
+                      className="premium-card p-5 group flex items-center justify-between hover:border-blue-300 dark:hover:border-blue-700 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-xl">
+                          <Building2 size={20} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold text-slate-900 dark:text-slate-50 truncate w-40">{p.address.split(',')[0]}</p>
+                          <p className="text-xs text-slate-500">{p.postcode}</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-blue-500 group-hover:translate-x-1 transition-all" />
+                    </button>
+                  ))
+                ) : (
+                  tenantsList.map(t => (
+                    <button
+                      key={t.id}
+                      onClick={() => handleSelectEntity(t.id, 'tenant')}
+                      className="premium-card p-5 group flex items-center justify-between hover:border-slate-400 dark:hover:border-slate-600 transition-all"
+                    >
+                      <div className="flex items-center gap-3">
+                        <div className="p-2.5 bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 rounded-xl">
+                          <Users size={20} />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-bold text-slate-900 dark:text-slate-50 truncate w-40">{t.name}</p>
+                          <p className="text-xs text-slate-500 truncate w-40">{t.propertyAddress.split(',')[0]}</p>
+                        </div>
+                      </div>
+                      <ChevronRight size={18} className="text-slate-300 group-hover:text-slate-600 group-hover:translate-x-1 transition-all" />
+                    </button>
+                  ))
                 )}
               </div>
             </div>
-          ))}
-        </div>
-      )}
+          )}
 
-      {isUploadModalOpen && mode === 'property' && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/40 backdrop-blur-sm p-4 animate-fade-in">
-          <div className="bg-white rounded-2xl shadow-2xl w-full max-w-md overflow-hidden transform transition-all scale-100">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center bg-slate-50/50">
-              <h3 className="text-lg font-bold text-slate-900">Upload Property Document</h3>
-              <button onClick={() => setIsUploadModalOpen(false)} className="text-slate-400 hover:text-slate-600 transition-colors"><X size={20} /></button>
+          {!selectedType && (
+            <div className="py-20 flex flex-col items-center text-center opacity-40">
+              <FileText size={80} className="mb-6 stroke-[1]" />
+              <p className="text-xl font-medium">Select a category above to browse documents</p>
             </div>
-            <form onSubmit={handleSaveDocument} className="p-6 space-y-5">
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Select Property</label>
-                <select required value={uploadData.propertyId} onChange={(e) => setUploadData({ ...uploadData, propertyId: e.target.value })} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white">
-                  <option value="">-- Select Property --</option>
-                  {properties.map(p => <option key={p.id} value={p.id}>{p.address}</option>)}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">Category</label>
-                <select value={uploadData.category} onChange={(e) => setUploadData({ ...uploadData, category: e.target.value })} className="w-full border border-slate-200 rounded-xl px-4 py-3 text-sm focus:outline-none focus:ring-2 focus:ring-blue-500/20 focus:border-blue-500 transition-all bg-white">
-                  {['Compliance', 'Insurance', 'Legal', 'Maintenance', 'Mortgage', 'Other'].map(c => (<option key={c} value={c}>{c}</option>))}
-                </select>
-              </div>
-              <div>
-                <label className="block text-xs font-bold text-slate-500 uppercase tracking-wider mb-1.5">File</label>
-                <div className="relative border border-slate-200 rounded-xl bg-slate-50 p-2">
-                  <input type="file" required onChange={handleFileChange} className="w-full text-sm text-slate-500 file:mr-4 file:py-2 file:px-4 file:rounded-lg file:border-0 file:text-xs file:font-bold file:bg-blue-600 file:text-white hover:file:bg-blue-700 transition-all cursor-pointer" />
-                </div>
-              </div>
-              <div className="pt-2">
-                <button type="submit" className="w-full bg-blue-600 text-white font-bold py-3.5 rounded-xl hover:bg-blue-700 shadow-lg shadow-blue-200 transition-all transform active:scale-[0.98] flex items-center justify-center gap-2">
-                  <Upload size={18} /> Upload
-                </button>
-              </div>
-            </form>
+          )}
+        </div>
+      ) : (
+        <div className="space-y-8 animate-fade-in">
+          {/* Breadcrumbs / Back button */}
+          <div className="flex items-center gap-3 text-sm font-bold">
+            <button
+              onClick={() => { setSelectedEntityId(null); setSearchTerm(''); }}
+              className="text-blue-600 hover:text-blue-700 hover:bg-blue-50 px-3 py-1.5 rounded-lg transition-colors"
+            >
+              Documents
+            </button>
+            <ChevronRight size={14} className="text-slate-300" />
+            <span className="text-slate-800 dark:text-slate-200">{getSelectedName()}</span>
+          </div>
+
+          {/* Integrated Document Manager */}
+          <div className="premium-card bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 p-8 pt-6">
+            <DocumentManager
+              entityId={selectedEntityId}
+              entityType={selectedType!}
+            />
           </div>
         </div>
       )}

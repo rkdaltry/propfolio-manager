@@ -1,7 +1,7 @@
 
 import React, { createContext, useContext, useState, useEffect, ReactNode } from 'react';
 import { Property, PropertyType } from './types';
-import { MOCK_PROPERTIES } from './constants';
+import { DEMO_PROPERTIES } from './constants';
 
 interface DataContextType {
   properties: Property[];
@@ -30,7 +30,7 @@ export const DataProvider: React.FC<{ children: ReactNode }> = ({ children }) =>
   // --- Data State ---
   const [properties, setProperties] = useState<Property[]>(() => {
     const saved = localStorage.getItem('propfolio_properties');
-    return saved ? JSON.parse(saved) : MOCK_PROPERTIES;
+    return saved ? JSON.parse(saved) : DEMO_PROPERTIES;
   });
 
   const [lastBackupDate, setLastBackupDate] = useState<string | null>(() => {

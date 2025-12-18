@@ -1,6 +1,6 @@
-import { Property, PropertyType } from './types';
+import { Property, PropertyType, MaintenanceStatus } from './types';
 
-export const MOCK_PROPERTIES: Property[] = [
+export const DEMO_PROPERTIES: Property[] = [
   {
     id: 'prop_1',
     address: '12 Oak Avenue, Manchester',
@@ -10,6 +10,7 @@ export const MOCK_PROPERTIES: Property[] = [
     purchaseDate: '2019-05-15',
     owner: 'J. Smith Holdings Ltd',
     description: 'A spacious 3-storey Victorian semi-detached property converted into a high-spec 6-bed HMO. Located close to the university campus and local amenities, making it ideal for student lets.',
+    currentValuation: 450000,
     mortgage: {
       lenderName: 'Halifax',
       termYears: 25,
@@ -66,8 +67,8 @@ export const MOCK_PROPERTIES: Property[] = [
         rightToRentExpiry: '2025-09-01',
         outstandingBalance: 0,
         payments: [
-            { id: 'p_1', date: '2024-03-01', amount: 550, type: 'Rent', reference: 'FPS S JENKINS' },
-            { id: 'p_2', date: '2024-02-01', amount: 550, type: 'Rent', reference: 'FPS S JENKINS' }
+          { id: 'p_1', date: '2024-03-01', amount: 550, type: 'Rent', reference: 'FPS S JENKINS' },
+          { id: 'p_2', date: '2024-02-01', amount: 550, type: 'Rent', reference: 'FPS S JENKINS' }
         ],
         documents: []
       },
@@ -83,7 +84,7 @@ export const MOCK_PROPERTIES: Property[] = [
         rightToRentExpiry: '2024-05-01', // Expiring soon example
         outstandingBalance: 600,
         payments: [
-            { id: 'p_3', date: '2024-02-01', amount: 600, type: 'Rent', reference: 'MROSS RENT' }
+          { id: 'p_3', date: '2024-02-01', amount: 600, type: 'Rent', reference: 'MROSS RENT' }
         ],
         documents: []
       },
@@ -106,7 +107,21 @@ export const MOCK_PROPERTIES: Property[] = [
       { id: 'tx_1', date: '2024-03-05', type: 'Expense', category: 'Maintenance', amount: 150, description: 'Boiler Service' },
       { id: 'tx_2', date: '2024-03-01', type: 'Income', category: 'Rent', amount: 1150, description: 'March Rent Received' },
       { id: 'tx_3', date: '2024-02-15', type: 'Expense', category: 'Mortgage', amount: 850, description: 'Monthly Payment' }
-    ]
+    ],
+    maintenanceTickets: [
+      {
+        id: 'mt_1',
+        title: 'Boiler Pressure Low',
+        description: 'Tenant reported boiler pressure dropping frequently. Needs inspection.',
+        status: MaintenanceStatus.RESOLVED,
+        priority: 'High',
+        category: 'Plumbing',
+        reportedDate: '2024-03-01',
+        resolvedDate: '2024-03-05',
+        cost: 150
+      }
+    ],
+    coordinates: { lat: 53.4808, lng: -2.2426 }
   },
   {
     id: 'prop_2',
@@ -117,6 +132,7 @@ export const MOCK_PROPERTIES: Property[] = [
     purchaseDate: '2021-02-10',
     owner: 'Private Portfolio',
     description: 'Modern 2-bedroom apartment situated in the city center. Features an open-plan living area, balcony, and secure underground parking. Currently let to young professionals.',
+    currentValuation: 320000,
     mortgage: {
       lenderName: 'NatWest',
       termYears: 20,
@@ -165,16 +181,18 @@ export const MOCK_PROPERTIES: Property[] = [
         rightToRentExpiry: '', // Indefinite/UK citizen example (empty)
         outstandingBalance: 0,
         payments: [
-             { id: 'p_4', date: '2024-03-01', amount: 850, type: 'Rent', reference: 'ECLARK MAR' },
-             { id: 'p_5', date: '2024-02-01', amount: 850, type: 'Rent', reference: 'ECLARK FEB' }
+          { id: 'p_4', date: '2024-03-01', amount: 850, type: 'Rent', reference: 'ECLARK MAR' },
+          { id: 'p_5', date: '2024-02-01', amount: 850, type: 'Rent', reference: 'ECLARK FEB' }
         ],
         documents: []
       }
     ],
     documents: [],
     transactions: [
-       { id: 'tx_4', date: '2024-03-01', type: 'Income', category: 'Rent', amount: 850, description: 'March Rent' },
-       { id: 'tx_5', date: '2024-03-10', type: 'Expense', category: 'Ground Rent', amount: 250, description: 'Annual Ground Rent' }
-    ]
+      { id: 'tx_4', date: '2024-03-01', type: 'Income', category: 'Rent', amount: 850, description: 'March Rent' },
+      { id: 'tx_5', date: '2024-03-10', type: 'Expense', category: 'Ground Rent', amount: 250, description: 'Annual Ground Rent' }
+    ],
+    maintenanceTickets: [],
+    coordinates: { lat: 53.8008, lng: -1.5491 }
   }
 ];

@@ -10,7 +10,11 @@ import {
     Plus,
     Search,
     Bell,
-    Menu
+    Menu,
+    Activity,
+    Shield,
+    TrendingUp,
+    Sparkles
 } from 'lucide-react';
 
 export const COLORS = {
@@ -47,11 +51,15 @@ export const SHADOWS = {
 
 export const NAV_ITEMS = [
     { label: 'Dashboard', path: '/', icon: LayoutDashboard },
+    { label: 'Command Center', path: '/command', icon: Shield },
+    { label: 'Portfolio Intel', path: '/intelligence', icon: Activity },
+    { label: 'Add New', path: '/add', icon: Plus },
     { label: 'Properties', path: '/properties', icon: Building2 },
     { label: 'Tenants', path: '/tenants', icon: Users },
     { label: 'Property Docs', path: '/documents', icon: FileText },
     { label: 'Tenant Docs', path: '/tenant-documents', icon: FileText },
     { label: 'AI Assistant', path: '/assistant', icon: Bot },
+    { label: 'AI Intellect', path: '/ocr-hub', icon: Sparkles },
     { label: 'Settings', path: '/settings', icon: Settings },
 ];
 

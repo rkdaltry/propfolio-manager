@@ -1,6 +1,14 @@
 import { Property, Document } from './types';
 import { ShieldAlert, ShieldCheck, ShieldQuestion } from 'lucide-react';
 
+export const formatCurrency = (amount: number) => {
+    return new Intl.NumberFormat('en-GB', {
+        style: 'currency',
+        currency: 'GBP',
+        maximumFractionDigits: 0
+    }).format(amount);
+};
+
 export const handleOpenDocument = (doc: Document) => {
     if (!doc.url) return;
     if (doc.url.startsWith('data:')) {
@@ -28,11 +36,11 @@ export const handleOpenDocument = (doc: Document) => {
 
 export const calculateCompletion = (p: Property) => {
     let score = 0;
-    let total = 7; 
+    let total = 7;
 
     const activeTenants = p.tenants.filter(t => !t.isDeleted);
     if (activeTenants.length > 0) score++;
-    
+
     if (p.mortgage) score++;
     if (p.buildingsInsurance) score++;
     if (p.utilities.length > 0) score++;
@@ -49,11 +57,11 @@ export const getComplianceStatus = (p: Property) => {
     let missing = 0;
 
     certs.forEach(c => {
-      if (!c) {
-        missing++;
-      } else if (c.status === 'Expired' || (c.expiryDate && new Date(c.expiryDate) < new Date())) {
-        hasExpired = true;
-      }
+        if (!c) {
+            missing++;
+        } else if (c.status === 'Expired' || (c.expiryDate && new Date(c.expiryDate) < new Date())) {
+            hasExpired = true;
+        }
     });
 
     if (hasExpired) return { label: 'Attention', icon: ShieldAlert, color: 'text-red-500', bg: 'bg-red-50' };
@@ -68,7 +76,7 @@ export const getExpiryStyle = (dateStr?: string) => {
     const target = new Date(dateStr);
     const diff = target.getTime() - now.getTime();
     const days = Math.ceil(diff / (1000 * 60 * 60 * 24));
-    
+
     if (days < 0) return { status: 'Expired', class: 'bg-red-50 text-red-700 border-red-200', days };
     if (days < 90) return { status: 'Expiring Soon', class: 'bg-amber-50 text-amber-700 border-amber-200', days };
     return { status: 'Active', class: 'bg-emerald-50 text-emerald-700 border-emerald-200', days };

@@ -10,7 +10,7 @@ export interface Document {
   type: string; // e.g., 'PDF', 'IMG'
   uploadDate: string;
   url?: string; // Placeholder for actual file link
-  
+
   // New categorized fields
   category?: 'Tenancy Agreement' | 'ID' | 'ID / Passport' | 'Right to Rent' | 'Guarantor' | 'Correspondence' | 'Other' | string;
   expiryDate?: string;
@@ -93,6 +93,8 @@ export interface Tenant {
   id: string;
   roomId?: string; // Relevant for HMO
   name: string;
+  email?: string; // Contact info
+  phone?: string; // Contact info
   rentAmount: number;
   depositAmount: number;
   depositReference: string;
@@ -103,10 +105,30 @@ export interface Tenant {
   documents?: Document[];
   isArchived?: boolean;
   isDeleted?: boolean; // New field for soft delete functionality
-  
+
   // Financials
   outstandingBalance: number;
   payments: Payment[];
+}
+
+export enum MaintenanceStatus {
+  REPORTED = 'Reported',
+  IN_PROGRESS = 'In Progress',
+  RESOLVED = 'Resolved',
+  CANCELLED = 'Cancelled'
+}
+
+export interface MaintenanceTicket {
+  id: string;
+  title: string;
+  description: string;
+  status: MaintenanceStatus;
+  priority: 'Low' | 'Medium' | 'High' | 'Emergency';
+  reportedDate: string;
+  resolvedDate?: string;
+  cost?: number;
+  assignedTo?: string;
+  category: 'Plumbing' | 'Electrical' | 'Structural' | 'Appliance' | 'Cleaning' | 'Other';
 }
 
 export interface Property {
@@ -119,14 +141,15 @@ export interface Property {
   owner?: string;
   description?: string;
   capacity?: number; // Added capacity field
-  
+  currentValuation?: number; // For Yield Analysis
+
   mortgage?: Mortgage;
   buildingsInsurance?: Insurance;
   hmoLicence?: HMOLicence;
   utilities: UtilityProvider[];
   councilTax?: CouncilTax;
   groundRent?: GroundRent;
-  
+
   // New Compliance Fields
   gasCertificate?: ComplianceCertificate;
   eicrCertificate?: ComplianceCertificate; // Electrical Installation Condition Report
@@ -136,6 +159,8 @@ export interface Property {
   tenants: Tenant[];
   documents: Document[]; // General property documents
   transactions: FinancialTransaction[]; // Property specific income/expenses
+  maintenanceTickets: MaintenanceTicket[]; // New field
+  coordinates?: { lat: number; lng: number }; // For Map Visualization
 }
 
 export interface DashboardStats {

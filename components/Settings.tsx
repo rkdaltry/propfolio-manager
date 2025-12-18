@@ -142,20 +142,13 @@ const Settings: React.FC = () => {
 
   return (
     <div className="p-8 lg:p-10 w-full mx-auto animate-fade-in pb-20">
-      <div className="mb-8">
-        <h1 className="text-3xl font-bold text-slate-900 tracking-tight flex items-center gap-3">
-          <SettingsIcon className="text-blue-600" size={32} /> Settings
-        </h1>
-        <p className="text-slate-500 mt-1">Manage your application data, preferences, and backups.</p>
-      </div>
-
       <div className="space-y-8">
         {/* Appearance */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/50">
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
             <div className="flex items-center gap-3">
-              <div className="bg-blue-100 p-2.5 rounded-xl text-blue-600 shadow-sm"><Palette size={20} /></div>
-              <div><h3 className="text-lg font-bold text-slate-900">Appearance</h3></div>
+              <div className="bg-blue-100 dark:bg-blue-900/40 p-2.5 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm"><Palette size={20} /></div>
+              <div><h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">Appearance</h3></div>
             </div>
             <button onClick={toggleDarkMode} className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
               <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition duration-200 ease-in-out flex items-center justify-center shadow-sm ${isDarkMode ? 'translate-x-7' : 'translate-x-1'}`}>
@@ -166,12 +159,12 @@ const Settings: React.FC = () => {
           <div className="p-6">
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               {availableThemes.map((theme) => (
-                <button key={theme.id} onClick={() => setTheme(theme.id)} className={`group relative flex flex-col text-left p-4 rounded-xl border-2 transition-all ${currentTheme === theme.id ? 'border-blue-500 bg-blue-50 shadow-sm ring-1 ring-blue-500' : 'border-slate-100 hover:border-blue-300 hover:shadow-md bg-white'}`}>
+                <button key={theme.id} onClick={() => setTheme(theme.id)} className={`group relative flex flex-col text-left p-4 rounded-xl border-2 transition-all ${currentTheme === theme.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm ring-1 ring-blue-500' : 'border-slate-100 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md bg-white dark:bg-slate-800'}`}>
                   <div className="flex items-center justify-between mb-3 w-full">
-                    <span className="font-bold text-slate-800">{theme.name}</span>
+                    <span className="font-bold text-slate-800 dark:text-slate-200">{theme.name}</span>
                     {currentTheme === theme.id && (<div className="bg-blue-500 text-white rounded-full p-0.5"><Check size={12} /></div>)}
                   </div>
-                  <p className="text-xs text-slate-500">{theme.description}</p>
+                  <p className="text-xs text-slate-500 dark:text-slate-400">{theme.description}</p>
                 </button>
               ))}
             </div>
@@ -179,23 +172,23 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Data Management */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-            <div className="bg-emerald-100 p-2.5 rounded-xl text-emerald-600 shadow-sm"><FileSpreadsheet size={20} /></div>
-            <div><h3 className="text-lg font-bold text-slate-900">Spreadsheet Data Management</h3></div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="bg-emerald-100 dark:bg-emerald-900/40 p-2.5 rounded-xl text-emerald-600 dark:text-emerald-400 shadow-sm"><FileSpreadsheet size={20} /></div>
+            <div><h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">Spreadsheet Data Management</h3></div>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-2 gap-6">
-            <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center text-center hover:border-emerald-200 transition-colors">
-              <h4 className="font-bold text-slate-800 mb-2">Download CSV</h4>
-              <p className="text-xs text-slate-500 mb-4">Export all your property and tenant data to a CSV file.</p>
+            <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center text-center hover:border-emerald-200 transition-colors">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2">Download CSV</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Export all your property and tenant data to a CSV file.</p>
               <button onClick={handleExportCSV} className="w-full py-2.5 bg-emerald-600 text-white rounded-xl font-bold hover:bg-emerald-700 transition-all shadow-sm shadow-emerald-200 flex items-center justify-center gap-2 transform active:scale-[0.98]">
                 <Download size={18} /> Download File
               </button>
             </div>
-            <div className="p-6 bg-slate-50 rounded-xl border border-slate-200 flex flex-col items-center text-center hover:border-emerald-200 transition-colors">
-              <h4 className="font-bold text-slate-800 mb-2">Upload CSV</h4>
-              <p className="text-xs text-slate-500 mb-4">Import properties and tenants from a CSV file.</p>
-              <label className="w-full py-2.5 bg-white text-emerald-600 border border-emerald-200 rounded-xl font-bold hover:bg-emerald-50 transition-all cursor-pointer flex items-center justify-center gap-2 transform active:scale-[0.98]">
+            <div className="p-6 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 flex flex-col items-center text-center hover:border-emerald-200 transition-colors">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2">Upload CSV</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Import properties and tenants from a CSV file.</p>
+              <label className="w-full py-2.5 bg-white dark:bg-slate-700 text-emerald-600 dark:text-emerald-400 border border-emerald-200 dark:border-emerald-900/50 rounded-xl font-bold hover:bg-emerald-50 dark:hover:bg-emerald-900/20 transition-all cursor-pointer flex items-center justify-center gap-2 transform active:scale-[0.98]">
                 <Upload size={18} /> Select File
                 <input type="file" accept=".csv" ref={csvInputRef} onChange={handleImportCSV} className="hidden" />
               </label>
@@ -204,23 +197,23 @@ const Settings: React.FC = () => {
         </div>
 
         {/* Backup & Reset */}
-        <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 flex items-center gap-3 bg-slate-50/50">
-            <div className="bg-blue-100 p-2.5 rounded-xl text-blue-600 shadow-sm"><Database size={20} /></div>
-            <div><h3 className="text-lg font-bold text-slate-900">Full Backup & Reset</h3></div>
+        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
+          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">
+            <div className="bg-blue-100 dark:bg-blue-900/40 p-2.5 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm"><Database size={20} /></div>
+            <div><h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">Full Backup & Reset</h3></div>
           </div>
           <div className="p-6 grid grid-cols-1 md:grid-cols-3 gap-6">
-            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-center hover:border-blue-200 transition-colors">
-              <h4 className="font-bold text-slate-800 mb-2">Export JSON</h4>
-              <p className="text-xs text-slate-500 mb-4">Full backup of all application state.</p>
-              <button onClick={performBackup} className="text-blue-600 text-sm font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
+            <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center hover:border-blue-200 transition-colors">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2">Export JSON</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Full backup of all application state.</p>
+              <button onClick={performBackup} className="text-blue-600 dark:text-blue-400 text-sm font-bold hover:underline flex items-center justify-center gap-1 mx-auto">
                 <Download size={14} /> Download Backup
               </button>
             </div>
-            <div className="p-5 bg-slate-50 rounded-xl border border-slate-200 text-center hover:border-blue-200 transition-colors">
-              <h4 className="font-bold text-slate-800 mb-2">Import JSON</h4>
-              <p className="text-xs text-slate-500 mb-4">Restore from a JSON backup file.</p>
-              <label className="text-emerald-600 text-sm font-bold hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto">
+            <div className="p-5 bg-slate-50 dark:bg-slate-800 rounded-xl border border-slate-200 dark:border-slate-700 text-center hover:border-blue-200 transition-colors">
+              <h4 className="font-bold text-slate-800 dark:text-slate-200 mb-2">Import JSON</h4>
+              <p className="text-xs text-slate-500 dark:text-slate-400 mb-4">Restore from a JSON backup file.</p>
+              <label className="text-emerald-600 dark:text-emerald-400 text-sm font-bold hover:underline cursor-pointer flex items-center justify-center gap-1 mx-auto">
                 <Upload size={14} /> Restore Backup
                 <input type="file" accept=".json" ref={fileInputRef} onChange={handleImportJSON} className="hidden" />
               </label>

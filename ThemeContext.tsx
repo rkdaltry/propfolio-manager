@@ -172,9 +172,9 @@ interface ThemeContextType {
 
 const ThemeContext = createContext<ThemeContextType>({
   currentTheme: 'corporate',
-  setTheme: () => {},
+  setTheme: () => { },
   isDarkMode: false,
-  toggleDarkMode: () => {},
+  toggleDarkMode: () => { },
   availableThemes: Object.values(THEMES)
 });
 
@@ -185,20 +185,20 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     return (localStorage.getItem('propfolio_theme') as ThemeId) || 'corporate';
   });
   const [isDarkMode, setIsDarkMode] = useState<boolean>(() => {
-      return localStorage.getItem('propfolio_dark_mode') === 'true';
+    return localStorage.getItem('propfolio_dark_mode') === 'true';
   });
 
   const toggleDarkMode = () => {
-      setIsDarkMode(prev => !prev);
+    setIsDarkMode(prev => !prev);
   };
 
   useEffect(() => {
     localStorage.setItem('propfolio_dark_mode', String(isDarkMode));
     const root = document.documentElement;
     if (isDarkMode) {
-        root.classList.add('dark');
+      root.classList.add('dark');
     } else {
-        root.classList.remove('dark');
+      root.classList.remove('dark');
     }
   }, [isDarkMode]);
 
@@ -215,55 +215,47 @@ export const ThemeProvider: React.FC<{ children: React.ReactNode }> = ({ childre
     root.style.setProperty('--font-main', theme.font);
 
     if (isDarkMode) {
-        // Invert Base Colors for Dark Mode with hierarchy adjustment
-        // App Background (200) maps to Darkest (900)
-        // Card Surface (50) maps to Dark Grey (800) to appear lighter than background
-        // Inputs/Holes (100) map to Darker Grey (850) for inset look
-        
-        root.style.setProperty('--color-base-50', base[800]);  // Card Surface
-        root.style.setProperty('--color-base-100', base[850]); // Input/Holes
-        root.style.setProperty('--color-base-200', base[900]); // App Background
-        
-        root.style.setProperty('--color-base-300', base[700]); // Borders
-        root.style.setProperty('--color-base-400', base[600]);
-        root.style.setProperty('--color-base-500', base[500]);
-        
-        root.style.setProperty('--color-base-600', base[400]); // Subtext
-        root.style.setProperty('--color-base-700', base[300]);
-        root.style.setProperty('--color-base-800', base[200]);
-        root.style.setProperty('--color-base-850', base[100]);
-        root.style.setProperty('--color-base-900', base[50]);  // Main Text
+      // SOPHISTICATED MUTED THEME logic:
+      // Background: Muted Light-Dark (Slate 200 feel)
+      // Cards: Off-white (Slate 50 / White)
 
-        // Adjust Primary Colors for Dark Mode contrast
-        root.style.setProperty('--color-primary-50', base[850]); 
-        root.style.setProperty('--color-primary-100', base[800]);
-        root.style.setProperty('--color-primary-200', base[700]);
-        
-        root.style.setProperty('--color-primary-300', primary[300]); 
-        root.style.setProperty('--color-primary-400', primary[400]);
-        root.style.setProperty('--color-primary-500', primary[500]); 
-        root.style.setProperty('--color-primary-600', primary[400]); 
-        root.style.setProperty('--color-primary-700', primary[300]); 
+      // Map "dark" tokens to "muted light" shades to achieve the look
+      root.style.setProperty('--color-base-950', '226 232 240'); // Main App Background
+      root.style.setProperty('--color-base-900', '241 245 249'); // Secondary Surfaces / Sidebar
+      root.style.setProperty('--color-base-850', '248 250 252'); // Card Base
+      root.style.setProperty('--color-base-800', '255 255 255'); // Premium Card Surface
+      root.style.setProperty('--color-base-700', '203 213 225'); // Borders/Dividers (Slate 300)
+
+      // Map "light" tokens to "dark" shades for text contrast
+      root.style.setProperty('--color-base-50', '15 23 42');   // Primary Text
+      root.style.setProperty('--color-base-100', '51 65 85');  // Secondary Text
+      root.style.setProperty('--color-base-200', '71 85 105'); // Muted Text
+      root.style.setProperty('--color-base-300', '100 116 139');
+
+      // Primary colors refined for the muted theme
+      root.style.setProperty('--color-primary-500', '37 99 235');
+      root.style.setProperty('--color-primary-400', '59 130 246');
+      root.style.setProperty('--color-primary-600', '29 78 216');
     } else {
-        // Normal Base
-        Object.entries(base).forEach(([shade, value]) => {
-            root.style.setProperty(`--color-base-${shade}`, value as string);
-        });
-        // Normal Primary
-        Object.entries(primary).forEach(([shade, value]) => {
-            root.style.setProperty(`--color-primary-${shade}`, value as string);
-        });
+      // Normal Base
+      Object.entries(base).forEach(([shade, value]) => {
+        root.style.setProperty(`--color-base-${shade}`, value as string);
+      });
+      // Normal Primary
+      Object.entries(primary).forEach(([shade, value]) => {
+        root.style.setProperty(`--color-primary-${shade}`, value as string);
+      });
     }
 
   }, [currentTheme, isDarkMode]);
 
   return (
-    <ThemeContext.Provider value={{ 
-      currentTheme, 
-      setTheme: setCurrentTheme, 
+    <ThemeContext.Provider value={{
+      currentTheme,
+      setTheme: setCurrentTheme,
       isDarkMode,
       toggleDarkMode,
-      availableThemes: Object.values(THEMES) 
+      availableThemes: Object.values(THEMES)
     }}>
       {children}
     </ThemeContext.Provider>
