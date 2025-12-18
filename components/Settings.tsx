@@ -1,7 +1,7 @@
 import React, { useRef } from 'react';
 import { Download, Upload, RefreshCw, Database, Palette, Check, Moon, Sun, FileSpreadsheet, Clock, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
 import { Property, Tenant, PropertyType } from '../types';
-import { MOCK_PROPERTIES } from '../constants';
+import { DEMO_PROPERTIES } from '../constants';
 import { useTheme } from '../ThemeContext';
 import { useData } from '../DataContext';
 

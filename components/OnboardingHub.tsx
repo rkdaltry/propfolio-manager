@@ -3,7 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import { useData } from '../DataContext';
 import { PropertyType, Property, Tenant } from '../types';
 import { Building2, Users, ClipboardCheck, ArrowLeft, Plus, MapPin, PoundSterling, Calendar, Save, CheckCircle2, ChevronRight } from 'lucide-react';
-import { MOCK_PROPERTIES } from '../constants';
+import { DEMO_PROPERTIES } from '../constants';
 
 type OnboardingState = 'hub' | 'property' | 'tenant' | 'success';
 
@@ -40,7 +40,7 @@ const OnboardingHub: React.FC = () => {
         setIsLoading(true);
 
         const newProp: Property = {
-            ...MOCK_PROPERTIES[0],
+            ...DEMO_PROPERTIES[0],
             id: `prop_${Date.now()}`,
             address: propData.address,
             postcode: propData.postcode,
