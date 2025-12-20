@@ -8,13 +8,13 @@ const ThemeToggle: React.FC = () => {
     return (
         <button
             onClick={toggleDarkMode}
-            className="p-2 rounded-lg bg-slate-100 text-slate-600 hover:bg-slate-200 transition-all duration-200 shadow-sm border border-slate-200"
+            className="p-3 rounded-2xl bg-white dark:bg-slate-900 text-slate-600 dark:text-slate-400 hover:bg-slate-50 dark:hover:bg-slate-800 transition-all duration-300 shadow-sm border border-slate-200 dark:border-slate-800 active:scale-90 group"
             aria-label="Toggle dark mode"
         >
             {isDarkMode ? (
-                <Sun size={20} className="text-amber-400 animate-in fade-in spin-in-90 duration-300" />
+                <Sun size={20} className="text-amber-500 group-hover:rotate-45 transition-transform duration-500" />
             ) : (
-                <Moon size={20} className="text-blue-600 animate-in fade-in spin-in-90 duration-300" />
+                <Moon size={20} className="text-indigo-600 group-hover:-rotate-12 transition-transform duration-500" />
             )}
         </button>
     );

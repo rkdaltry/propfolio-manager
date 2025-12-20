@@ -51,6 +51,7 @@ const OnboardingHub: React.FC = () => {
             utilities: [],
             productInsurances: [],
             transactions: [],
+            maintenanceTickets: [],
             imageUrl: `https://picsum.photos/800/600?random=${Date.now()}`,
             purchaseDate: new Date().toISOString().split('T')[0],
         };
@@ -99,7 +100,7 @@ const OnboardingHub: React.FC = () => {
     };
 
     return (
-        <div className="min-h-[calc(100vh-64px)] p-6 lg:p-10 max-w-5xl mx-auto animate-fade-in pb-20">
+        <div className="min-h-[calc(100vh-64px)] p-6 lg:px-16 xl:px-24 lg:py-10 w-full mx-auto animate-fade-in pb-20">
             {/* Header */}
             <div className="flex items-center justify-between mb-8">
                 <div>
@@ -143,7 +144,7 @@ const OnboardingHub: React.FC = () => {
                     </button>
 
                     <div className="md:col-span-2 p-1 bg-gradient-to-r from-blue-600 to-indigo-600 rounded-3xl opacity-90 shadow-lg shadow-blue-500/20">
-                        <button className="w-full group p-8 bg-white dark:bg-slate-900 rounded-[calc(1.5rem-1px)] hover:bg-transparent transition-all duration-500 text-left flex flex-col md:flex-row md:items-center justify-between gap-6">
+                        <button onClick={() => setView('property')} className="w-full group p-8 bg-white dark:bg-slate-900 rounded-[calc(1.5rem-1px)] hover:bg-transparent transition-all duration-500 text-left flex flex-col md:flex-row md:items-center justify-between gap-6">
                             <div className="flex-1">
                                 <div className="flex items-center gap-3 mb-4">
                                     <div className="w-10 h-10 bg-blue-100 dark:bg-blue-900/30 rounded-xl flex items-center justify-center text-blue-600 dark:text-blue-400">

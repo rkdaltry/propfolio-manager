@@ -1,13 +1,12 @@
-
-
-import { GoogleGenAI } from "@google/genai";
+import { GoogleGenAI, Type } from "@google/genai";
 import { Property, Payment } from "../types";
 
 // Helper to safely initialize the client
 const getAiClient = () => {
-  const apiKey = process.env.API_KEY;
+  // Use the env vars mapped by vite.config.ts
+  const apiKey = (process.env as any).GEMINI_API_KEY || (process.env as any).API_KEY;
   if (!apiKey) {
-    console.warn("API Key not found in environment");
+    console.warn("Gemini API Key not found in process.env. Check your .env file or vite.config.ts mapping.");
     return null;
   }
   return new GoogleGenAI({ apiKey });
@@ -29,9 +28,9 @@ export const askPortfolioAssistant = async (
     license: p.hmoLicence,
     tenants: p.tenants.map(t => ({ name: t.name, rent: t.rentAmount, end: t.tenancyEndDate })),
     renewals: [
-        { item: "Mortgage", date: p.mortgage?.fixedRateExpiry },
-        { item: "Insurance", date: p.buildingsInsurance?.renewalDate },
-        { item: "HMO License", date: p.hmoLicence?.renewalDate }
+      { item: "Mortgage", date: p.mortgage?.fixedRateExpiry },
+      { item: "Insurance", date: p.buildingsInsurance?.renewalDate },
+      { item: "HMO License", date: p.hmoLicence?.renewalDate }
     ]
   }));
 
@@ -66,31 +65,31 @@ export const analyzeDocument = async (
   fileBase64: string,
   mimeType: string
 ): Promise<string> => {
-   const ai = getAiClient();
-   if (!ai) return "API Key missing.";
+  const ai = getAiClient();
+  if (!ai) return "API Key missing.";
 
-   try {
-     const response = await ai.models.generateContent({
-       model: 'gemini-2.5-flash',
-       contents: {
-         parts: [
-           {
-             inlineData: {
-               mimeType: mimeType,
-               data: fileBase64
-             }
-           },
-           {
-             text: "Analyze this document. Identify what kind of property document it is (e.g., Tenancy Agreement, Insurance Certificate, Bill). Extract key dates (renewal, expiry), amounts, and names. Return a brief summary."
-           }
-         ]
-       }
-     });
-     return response.text || "Could not analyze document.";
-   } catch (error) {
-     console.error("Document analysis failed", error);
-     return "Failed to analyze the document.";
-   }
+  try {
+    const response = await ai.models.generateContent({
+      model: 'gemini-2.5-flash',
+      contents: {
+        parts: [
+          {
+            inlineData: {
+              mimeType: mimeType,
+              data: fileBase64
+            }
+          },
+          {
+            text: "Analyze this document. Identify what kind of property document it is (e.g., Tenancy Agreement, Insurance Certificate, Bill). Extract key dates (renewal, expiry), amounts, and names. Return a brief summary."
+          }
+        ]
+      }
+    });
+    return response.text || "Could not analyze document.";
+  } catch (error) {
+    console.error("Document analysis failed", error);
+    return "Failed to analyze the document.";
+  }
 };
 
 export const extractDocumentDetails = async (
@@ -135,7 +134,7 @@ export const extractDocumentDetails = async (
     let text = response.text || "";
     // Clean markdown if present
     text = text.replace(/```json/g, '').replace(/```/g, '').trim();
-    
+
     return JSON.parse(text);
   } catch (error) {
     console.error("Structured document analysis failed", error);
@@ -219,7 +218,7 @@ export const analyzePaymentHistory = async (
 
   // Provide simpler context
   const context = history.map(h => `${h.date}: £${h.amount} (${h.type})`).join('\n');
-  
+
   const prompt = `
     Analyze this payment history for a tenant paying £${rentAmount}/month.
     History:
@@ -237,4 +236,144 @@ export const analyzePaymentHistory = async (
   } catch (error) {
     return "";
   }
+};
+
+export const extractTenantData = async (
+  content: string | string[],
+  contentType: 'text' | 'image' | 'images',
+  mimeType: string = 'image/jpeg'
+): Promise<any> => {
+  const ai = getAiClient();
+  if (!ai) return null;
+
+  const apiKey = (process.env as any).GEMINI_API_KEY || (process.env as any).API_KEY;
+  console.log(`[AI Extraction] Using API Key starting with: ${apiKey?.substring(0, 7)}...`);
+  console.log(`[AI Extraction] Starting extraction. Type: ${contentType}, MIME: ${mimeType}`);
+
+  const systemInstruction = `
+    You are analyzing a UK NRLA Assured Shorthold Tenancy Agreement document.
+    The document may span multiple pages - look across ALL provided images for the required information.
+    
+    CRITICAL DOCUMENT STRUCTURE:
+    - First, the document says "This agreement is between us, the landlord" followed by the LANDLORD's name
+    - Then it says "and you, the tenant" followed by the TENANT's name
+    - The tenant's email is often found in a table on page 2 under "If we need to contact you via email"
+    
+    YOUR TASK: Extract ONLY the TENANT's name (the person AFTER "and you, the tenant").
+    DO NOT include the landlord's name. The landlord is the person BEFORE "and you, the tenant".
+    
+    Look for the tenant's email in the contact details table (usually on page 2).
+    
+    Extract:
+    - name: ONLY the name that appears AFTER "and you, the tenant"
+    - email: Tenant's email from the contact table (look for their name row with email address)
+    - phone: Tenant's phone if present
+    - startDate: Date after "begins on" in YYYY-MM-DD format
+    - rentAmount: Monthly rent (number after "£")
+    - depositAmount: Deposit amount 
+    - propertyAddress: Address after "We will let out the room"
+  `;
+
+  const MAX_RETRIES = 3;
+  const INITIAL_DELAY_MS = 2000;
+
+  for (let attempt = 0; attempt < MAX_RETRIES; attempt++) {
+    try {
+      // Using @google/genai SDK pattern with simple prompting
+      const extractionPrompt = `${systemInstruction}
+
+Return ONLY a valid JSON object:
+{
+  "name": "the name appearing AFTER 'and you, the tenant' ONLY",
+  "email": "tenant email from the contact details table",
+  "phone": "tenant phone or empty string", 
+  "startDate": "YYYY-MM-DD format",
+  "rentAmount": number,
+  "depositAmount": number,
+  "propertyAddress": "full property address"
+}
+
+IMPORTANT: For the "name" field, return ONLY the tenant's name (like "Lina Mouhakkik"), 
+NOT the landlord's name (like "Rashed Khan") and NOT both names combined.
+Look for the tenant's email in a table that lists tenant names with their email addresses.
+
+Do not include any text before or after the JSON.`;
+
+      let contents: any;
+      if (contentType === 'text') {
+        contents = {
+          parts: [{ text: `${extractionPrompt}\n\nDocument content:\n${content}` }]
+        };
+      } else if (contentType === 'images' && Array.isArray(content)) {
+        // Multiple images (multi-page PDF)
+        const imageParts = content.map((imgData, idx) => ({
+          inlineData: { mimeType: mimeType, data: imgData }
+        }));
+        console.log(`[AI Extraction] Sending ${content.length} page images to Gemini`);
+        contents = {
+          parts: [
+            ...imageParts,
+            { text: extractionPrompt }
+          ]
+        };
+      } else {
+        // Single image
+        contents = {
+          parts: [
+            { inlineData: { mimeType: mimeType, data: content as string } },
+            { text: extractionPrompt }
+          ]
+        };
+      }
+
+      console.log(`[AI Extraction] Attempt ${attempt + 1}/${MAX_RETRIES}...`);
+      const response = await ai.models.generateContent({
+        model: 'gemini-2.5-flash',
+        contents: contents
+      });
+
+      if (response.text) {
+        console.log("[AI Extraction] Raw response:", response.text);
+        // Clean any markdown formatting
+        let cleanText = response.text.trim();
+        if (cleanText.includes('```')) {
+          cleanText = cleanText.replace(/```json/g, '').replace(/```/g, '').trim();
+        }
+        const firstBrace = cleanText.indexOf('{');
+        const lastBrace = cleanText.lastIndexOf('}');
+        if (firstBrace !== -1 && lastBrace !== -1) {
+          cleanText = cleanText.substring(firstBrace, lastBrace + 1);
+        }
+        const parsed = JSON.parse(cleanText);
+        console.log("[AI Extraction] Successfully parsed data:", parsed);
+        return parsed;
+      }
+
+      return null;
+    } catch (error: any) {
+      const is503 = error?.status === 503 || error?.message?.includes('503') || error?.message?.includes('overloaded');
+      const is429 = error?.status === 429 || error?.message?.includes('429') || error?.message?.includes('Quota exceeded') || error?.message?.includes('RESOURCE_EXHAUSTED');
+
+      if ((is503 || is429) && attempt < MAX_RETRIES - 1) {
+        // For rate limits (429), use much longer delays
+        const baseDelay = is429 ? 30000 : INITIAL_DELAY_MS; // 30s for rate limit, 2s for overload
+        const delay = baseDelay * (attempt + 1);
+        const errorType = is429 ? 'Rate limited (429)' : 'Model overloaded (503)';
+        console.warn(`[AI Extraction] ${errorType}. Retrying in ${delay / 1000}s... (attempt ${attempt + 1}/${MAX_RETRIES})`);
+        await new Promise(resolve => setTimeout(resolve, delay));
+        continue;
+      }
+
+      console.error("Gemini tenant extraction failed:", error);
+
+      // Give user a more helpful error message for rate limits
+      if (is429) {
+        console.error("[AI Extraction] You've exceeded the Gemini API rate limit. Please wait a few minutes before trying again.");
+      }
+
+      return null;
+    }
+  }
+
+  return null;
 };

@@ -27,7 +27,7 @@ import { useParams, useNavigate } from 'react-router-dom';
 const PropertyDetailWrapper: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const navigate = useNavigate();
-  const { properties, updateProperty } = useData();
+  const { properties, updateProperty, deleteProperty, restoreProperty, permanentlyDeleteProperty } = useData();
   const property = properties.find(p => p.id === id);
 
   if (!property) return <div className="p-12 text-center text-lg text-slate-500">Property not found</div>;
@@ -38,6 +38,18 @@ const PropertyDetailWrapper: React.FC = () => {
         property={property}
         onBack={() => navigate(-1)}
         onUpdateProperty={updateProperty}
+        onDeleteProperty={(id) => {
+          deleteProperty(id);
+          navigate('/properties', { replace: true });
+        }}
+        onRestoreProperty={(id) => {
+          restoreProperty(id);
+          // Stay on page, banner will disappear
+        }}
+        onPermanentDeleteProperty={(id) => {
+          permanentlyDeleteProperty(id);
+          navigate('/properties', { replace: true });
+        }}
       />
     </div>
   );
@@ -63,7 +75,8 @@ const ProtectedRoute: React.FC<{ children: React.ReactNode }> = ({ children }) =
 
 
 const AppContent: React.FC = () => {
-  const { properties } = useData();
+  const { user, loading: authLoading } = useAuth();
+  const { properties, isLoading: dataLoading, addProperty, permanentlyDeleteProperty } = useData();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const location = useLocation();
 
@@ -72,21 +85,76 @@ const AppContent: React.FC = () => {
     setIsMobileMenuOpen(false);
   }, [location]);
 
+  // --- Migration: Force Real Properties if Mocks are present ---
+  useEffect(() => {
+    if (user && properties.length > 0) {
+      const isUsingMocks = properties.some(p => p.address.includes('Oak Avenue') || p.id === 'prop_1');
+      if (isUsingMocks) {
+        console.warn("MIGRATION: Detected mock properties. Purging and refreshing with real assets.");
+        // We use a separate constant here to avoid any import loops or stale references
+        const realAssets = [
+          { id: 'real_1', address: '139 Vicarage Lane (E15 4HJ)', postcode: 'E15 4HJ', type: 'FLAT', currentValuation: 170000 },
+          { id: 'real_2', address: '80 Vernon Road (E15 2DG)', postcode: 'E15 2DG', type: 'FLAT', currentValuation: 250000 },
+          { id: 'real_3', address: 'Flat 3, SG4 9SA', postcode: 'SG4 9SA', type: 'FLAT', currentValuation: 180000 },
+          { id: 'real_4', address: '27A, SG1 1PS', postcode: 'SG1 1PS', type: 'FLAT', currentValuation: 175000 }
+        ];
+
+        // 1. Purge mocks
+        properties.forEach(p => {
+          if (p.address.includes('Oak Avenue') || p.address.includes('High Street') || p.id.startsWith('prop_')) {
+            permanentlyDeleteProperty(p.id);
+          }
+        });
+
+        // 2. Inject real assets
+        realAssets.forEach((asset: any) => {
+          addProperty({
+            ...asset,
+            imageUrl: `https://picsum.photos/800/600?random=${Math.random()}`,
+            purchaseDate: '2020-01-01',
+            utilities: [],
+            productInsurances: [],
+            tenants: [],
+            documents: [],
+            transactions: [],
+            maintenanceTickets: []
+          } as any);
+        });
+      }
+    }
+  }, [user, properties.length]);
+
+  if (authLoading || (user && dataLoading)) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-slate-100 dark:bg-slate-950">
+        <Loader2 className="animate-spin text-slate-400" size={48} />
+      </div>
+    );
+  }
+
+  // If no user, the Routes inside main will Navigate to /login, 
+  // but we want to avoid rendering Sidebar/Header entirely for Login page or unauthorized access
+  const isAuthPage = location.pathname === '/login';
+
   return (
     <div className="flex min-h-screen bg-slate-100 dark:bg-slate-950 font-sans transition-colors duration-300">
       <GlobalSearch />
-      <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
 
-      {/* Backdrop for mobile menu */}
-      {isMobileMenuOpen && (
-        <div
-          className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
-          onClick={() => setIsMobileMenuOpen(false)}
-        />
+      {user && !isAuthPage && (
+        <>
+          <Sidebar isOpen={isMobileMenuOpen} onClose={() => setIsMobileMenuOpen(false)} />
+          {/* Backdrop for mobile menu */}
+          {isMobileMenuOpen && (
+            <div
+              className="fixed inset-0 bg-slate-900/40 backdrop-blur-sm z-30 lg:hidden transition-opacity duration-300"
+              onClick={() => setIsMobileMenuOpen(false)}
+            />
+          )}
+        </>
       )}
 
-      <main className={`flex-1 min-h-screen transition-all duration-300 ${isMobileMenuOpen ? 'blur-sm lg:blur-none' : ''} lg:ml-64`}>
-        <Header onMenuClick={() => setIsMobileMenuOpen(true)} />
+      <main className={`flex-1 min-h-screen transition-all duration-300 ${isMobileMenuOpen ? 'blur-sm lg:blur-none' : ''} ${user && !isAuthPage ? 'lg:ml-64' : ''}`}>
+        {user && !isAuthPage && <Header onMenuClick={() => setIsMobileMenuOpen(true)} />}
         <Routes>
           <Route path="/" element={<ProtectedRoute><Dashboard /></ProtectedRoute>} />
           <Route path="/add" element={<ProtectedRoute><OnboardingHub /></ProtectedRoute>} />

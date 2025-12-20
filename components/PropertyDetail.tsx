@@ -61,9 +61,19 @@ interface PropertyDetailProps {
     property: Property;
     onBack: () => void;
     onUpdateProperty: (property: Property) => void;
+    onDeleteProperty: (id: string) => void;
+    onRestoreProperty: (id: string) => void;
+    onPermanentDeleteProperty: (id: string) => void;
 }
 
-export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onBack, onUpdateProperty }) => {
+export const PropertyDetail: React.FC<PropertyDetailProps> = ({
+    property,
+    onBack,
+    onUpdateProperty,
+    onDeleteProperty,
+    onRestoreProperty,
+    onPermanentDeleteProperty
+}) => {
     const [viewMode, setViewMode] = useState<'dashboard' | 'tenants' | 'financials' | 'compliance' | 'maintenance' | 'yield'>('dashboard');
     const [searchParams] = useSearchParams();
 
@@ -89,6 +99,20 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onBack
         const editParam = searchParams.get('edit');
         if (editParam === 'general') {
             setActiveEditSection('general');
+        }
+
+        // Check for tab query param (from Tenants page navigation)
+        const tabParam = searchParams.get('tab');
+        if (tabParam === 'tenants') {
+            setViewMode('tenants');
+        } else if (tabParam === 'compliance') {
+            setViewMode('compliance');
+        } else if (tabParam === 'financials') {
+            setViewMode('financials');
+        } else if (tabParam === 'maintenance') {
+            setViewMode('maintenance');
+        } else if (tabParam === 'yield') {
+            setViewMode('yield');
         }
     }, [searchParams]);
 
@@ -181,14 +205,59 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onBack
         setEditedProperty({ ...editedProperty, productInsurances: updated });
     };
 
+    const handleDelete = () => {
+        if (property.isDeleted) {
+            if (window.confirm('PERMANENT DELETE: This cannot be undone. Are you sure?')) {
+                onPermanentDeleteProperty(property.id);
+            }
+        } else {
+            if (window.confirm('Move to Bin? You can restore it later.')) {
+                onDeleteProperty(property.id);
+            }
+        }
+    };
+
+    const handleRestore = () => {
+        onRestoreProperty(property.id);
+    };
+
     return (
         <div className="pb-20 animate-fade-in max-w-7xl mx-auto px-4 lg:px-8">
+            {/* Soft-Delete Warning Banner */}
+            {property.isDeleted && (
+                <div className="bg-amber-500/10 border-2 border-amber-500/20 rounded-[2rem] p-6 mb-8 flex flex-col md:flex-row items-center justify-between gap-6 backdrop-blur-md animate-pulse-subtle">
+                    <div className="flex items-center gap-5">
+                        <div className="bg-amber-500 p-4 rounded-2xl text-white shadow-lg shadow-amber-500/20">
+                            <Archive size={28} />
+                        </div>
+                        <div>
+                            <h3 className="text-xl font-black text-amber-900 dark:text-amber-400 uppercase italic tracking-tight">This asset is in the Bin</h3>
+                            <p className="text-sm font-bold text-amber-800/60 dark:text-amber-400/60">It was moved to the bin on {new Date(property.deletedAt || '').toLocaleDateString()}. Data is still safe but hidden from your main portfolio.</p>
+                        </div>
+                    </div>
+                    <div className="flex items-center gap-3 w-full md:w-auto">
+                        <button
+                            onClick={handleRestore}
+                            className="flex-1 md:flex-none px-8 py-3.5 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all shadow-xl shadow-amber-500/20 hover:scale-[1.02] active:scale-[0.98] flex items-center justify-center gap-2"
+                        >
+                            <RefreshCcw size={18} /> Restore Asset
+                        </button>
+                        <button
+                            onClick={handleDelete}
+                            className="flex-1 md:flex-none px-8 py-3.5 bg-white dark:bg-slate-800 text-red-500 hover:bg-red-50 border-2 border-red-500/20 rounded-2xl font-black text-sm transition-all flex items-center justify-center gap-2"
+                        >
+                            <Trash2 size={18} /> Delete Forever
+                        </button>
+                    </div>
+                </div>
+            )}
+
             {/* Modular Hero Section */}
             <PropertyHero
                 property={property}
                 onBack={onBack}
-                onEdit={() => setActiveEditSection('general')}
-                onDelete={() => { }} // Could add confirm delete here
+                onEdit={() => !property.isDeleted && setActiveEditSection('general')}
+                onDelete={handleDelete}
             />
 
             {/* Dashboard Navigation Tabs */}
@@ -281,6 +350,7 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onBack
                         onGenerateReminder={handleGenerateReminder}
                         onAnalyzeLedger={handleAnalyzeLedger}
                         onAddPayment={handleAddPayment}
+                        initialSelectedTenantId={searchParams.get('tenant') || undefined}
                     />
                 )}
 
@@ -336,6 +406,10 @@ export const PropertyDetail: React.FC<PropertyDetailProps> = ({ property, onBack
                                     <div className="md:col-span-2">
                                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Address</label>
                                         <input type="text" value={editedProperty.address} onChange={(e) => setEditedProperty({ ...editedProperty, address: e.target.value })} className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-base font-bold bg-slate-50 focus:border-blue-500 focus:bg-white outline-none transition-all" />
+                                    </div>
+                                    <div>
+                                        <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Postcode</label>
+                                        <input type="text" value={editedProperty.postcode} onChange={(e) => setEditedProperty({ ...editedProperty, postcode: e.target.value })} className="w-full border-2 border-slate-100 rounded-2xl px-5 py-4 text-base font-bold bg-slate-50 focus:border-blue-500 focus:bg-white outline-none transition-all" />
                                     </div>
                                     <div>
                                         <label className="block text-xs font-black text-slate-400 uppercase tracking-widest mb-2">Owner Name</label>

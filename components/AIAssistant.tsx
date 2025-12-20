@@ -41,15 +41,26 @@ const AIAssistant: React.FC<AIAssistantProps> = ({ properties }) => {
     setInput('');
     setIsLoading(true);
 
-    const responseText = await askPortfolioAssistant(input, properties);
+    try {
+      const responseText = await askPortfolioAssistant(input, properties);
 
-    const aiMessage: Message = {
-      role: 'assistant',
-      content: responseText,
-      timestamp: new Date()
-    };
-    setMessages(prev => [...prev, aiMessage]);
-    setIsLoading(false);
+      const aiMessage: Message = {
+        role: 'assistant',
+        content: responseText,
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, aiMessage]);
+    } catch (error) {
+      console.error("AI Assistant error:", error);
+      const errorMessage: Message = {
+        role: 'assistant',
+        content: "Sorry, I encountered an error. The API might be rate limited - please try again in a moment.",
+        timestamp: new Date()
+      };
+      setMessages(prev => [...prev, errorMessage]);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   return (

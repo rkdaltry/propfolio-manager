@@ -1,8 +1,7 @@
 import React, { useRef } from 'react';
-import { Download, Upload, RefreshCw, Database, Palette, Check, Moon, Sun, FileSpreadsheet, Clock, ShieldCheck, Settings as SettingsIcon } from 'lucide-react';
+import { Download, Upload, RefreshCw, Database, FileSpreadsheet } from 'lucide-react';
 import { Property, Tenant, PropertyType } from '../types';
 import { DEMO_PROPERTIES } from '../constants';
-import { useTheme } from '../ThemeContext';
 import { useData } from '../DataContext';
 
 const Settings: React.FC = () => {
@@ -17,7 +16,6 @@ const Settings: React.FC = () => {
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const csvInputRef = useRef<HTMLInputElement>(null);
-  const { currentTheme, setTheme, availableThemes, isDarkMode, toggleDarkMode } = useTheme();
 
   // --- CSV Logic ---
   const escapeCSV = (str: string | number | undefined | null) => {
@@ -101,7 +99,7 @@ const Settings: React.FC = () => {
         }
         let property = propertyMap.get(pId);
         if (!property) {
-          property = { id: pId, address: address || 'Unknown', postcode: postcode || '', type: (typeRaw as PropertyType) || PropertyType.FLAT, owner: owner, purchaseDate: purchaseDate || new Date().toISOString().split('T')[0], description: description, imageUrl: 'https://picsum.photos/800/600', tenants: [], documents: [], utilities: [], productInsurances: [], transactions: [] };
+          property = { id: pId, address: address || 'Unknown', postcode: postcode || '', type: (typeRaw as PropertyType) || PropertyType.FLAT, owner: owner, purchaseDate: purchaseDate || new Date().toISOString().split('T')[0], description: description, imageUrl: 'https://picsum.photos/800/600', tenants: [], documents: [], utilities: [], productInsurances: [], transactions: [], maintenanceTickets: [] };
         } else {
           property = { ...property, address: address || property.address, postcode: postcode || property.postcode, type: (typeRaw as PropertyType) || property.type, owner: owner || property.owner, description: description || property.description, purchaseDate: purchaseDate || property.purchaseDate };
         }
@@ -137,40 +135,12 @@ const Settings: React.FC = () => {
   };
 
   const handleReset = () => {
-    if (window.confirm('Reset to demo data?')) { setProperties(MOCK_PROPERTIES); localStorage.removeItem('propfolio_properties'); }
+    if (window.confirm('Reset to demo data?')) { setProperties(DEMO_PROPERTIES); localStorage.removeItem('propfolio_properties'); }
   };
 
   return (
-    <div className="p-8 lg:p-10 w-full mx-auto animate-fade-in pb-20">
+    <div className="p-8 lg:px-16 xl:px-24 lg:py-10 w-full mx-auto animate-fade-in pb-20">
       <div className="space-y-8">
-        {/* Appearance */}
-        <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
-          <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center justify-between bg-slate-50/50 dark:bg-slate-800/50">
-            <div className="flex items-center gap-3">
-              <div className="bg-blue-100 dark:bg-blue-900/40 p-2.5 rounded-xl text-blue-600 dark:text-blue-400 shadow-sm"><Palette size={20} /></div>
-              <div><h3 className="text-lg font-bold text-slate-900 dark:text-slate-50">Appearance</h3></div>
-            </div>
-            <button onClick={toggleDarkMode} className={`relative inline-flex h-8 w-14 items-center rounded-full transition-colors ${isDarkMode ? 'bg-slate-700' : 'bg-slate-200'}`}>
-              <span className={`inline-block h-6 w-6 transform rounded-full bg-white transition duration-200 ease-in-out flex items-center justify-center shadow-sm ${isDarkMode ? 'translate-x-7' : 'translate-x-1'}`}>
-                {isDarkMode ? <Moon size={12} className="text-slate-800" /> : <Sun size={14} className="text-amber-500" />}
-              </span>
-            </button>
-          </div>
-          <div className="p-6">
-            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
-              {availableThemes.map((theme) => (
-                <button key={theme.id} onClick={() => setTheme(theme.id)} className={`group relative flex flex-col text-left p-4 rounded-xl border-2 transition-all ${currentTheme === theme.id ? 'border-blue-500 bg-blue-50 dark:bg-blue-900/20 shadow-sm ring-1 ring-blue-500' : 'border-slate-100 dark:border-slate-800 hover:border-blue-300 dark:hover:border-blue-700 hover:shadow-md bg-white dark:bg-slate-800'}`}>
-                  <div className="flex items-center justify-between mb-3 w-full">
-                    <span className="font-bold text-slate-800 dark:text-slate-200">{theme.name}</span>
-                    {currentTheme === theme.id && (<div className="bg-blue-500 text-white rounded-full p-0.5"><Check size={12} /></div>)}
-                  </div>
-                  <p className="text-xs text-slate-500 dark:text-slate-400">{theme.description}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-        </div>
-
         {/* Data Management */}
         <div className="bg-white dark:bg-slate-900 rounded-xl shadow-sm border border-slate-200 dark:border-slate-800 overflow-hidden">
           <div className="p-6 border-b border-slate-100 dark:border-slate-800 flex items-center gap-3 bg-slate-50/50 dark:bg-slate-800/50">

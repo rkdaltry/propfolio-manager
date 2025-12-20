@@ -152,8 +152,8 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ entityId, entityType,
                             key={cat}
                             onClick={() => setActiveCategory(cat)}
                             className={`px-4 py-2 rounded-xl text-sm font-bold transition-all ${activeCategory === cat
-                                    ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
-                                    : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
+                                ? 'bg-blue-600 text-white shadow-md shadow-blue-500/20'
+                                : 'bg-slate-50 dark:bg-slate-800 text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700'
                                 }`}
                         >
                             {cat}
@@ -182,24 +182,29 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ entityId, entityType,
                     </div>
                 ) : filteredDocuments.length > 0 ? (
                     filteredDocuments.map(doc => (
-                        <div key={doc.id} className="premium-card group relative overflow-hidden">
+                        <div
+                            key={doc.id}
+                            className="premium-card group relative overflow-hidden cursor-pointer hover:ring-2 hover:ring-blue-500/50 transition-all"
+                            onClick={() => window.open(doc.downloadURL, '_blank')}
+                        >
                             <div className="p-5 space-y-4">
                                 <div className="flex items-start justify-between">
                                     <div className="p-3 bg-blue-50 dark:bg-blue-900/30 text-blue-600 dark:text-blue-400 rounded-2xl">
                                         {getFileIcon(doc.type)}
                                     </div>
-                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                                    <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity" onClick={(e) => e.stopPropagation()}>
                                         <a
                                             href={doc.downloadURL}
                                             target="_blank"
                                             rel="noopener noreferrer"
                                             className="p-2 text-slate-400 hover:text-blue-600 hover:bg-blue-50 dark:hover:bg-blue-900/40 rounded-xl transition-colors"
                                             title="Download"
+                                            onClick={(e) => e.stopPropagation()}
                                         >
                                             <Download size={18} />
                                         </a>
                                         <button
-                                            onClick={() => handleDelete(doc)}
+                                            onClick={(e) => { e.stopPropagation(); handleDelete(doc); }}
                                             className="p-2 text-slate-400 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-900/40 rounded-xl transition-colors"
                                             title="Delete"
                                         >
@@ -221,6 +226,9 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ entityId, entityType,
                                         </span>
                                     </div>
                                 </div>
+
+                                {/* Click hint */}
+                                <p className="text-[10px] text-blue-500 font-bold opacity-0 group-hover:opacity-100 transition-opacity">Click to open →</p>
                             </div>
 
                             {/* Bottom Decoration */}
@@ -271,8 +279,8 @@ const DocumentManager: React.FC<DocumentManagerProps> = ({ entityId, entityType,
                                             key={cat}
                                             onClick={() => setSelectedCategory(cat)}
                                             className={`px-3 py-2.5 rounded-xl text-xs font-bold text-left transition-all border ${selectedCategory === cat
-                                                    ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400'
-                                                    : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-blue-100 dark:hover:border-blue-900'
+                                                ? 'bg-blue-50 dark:bg-blue-900/30 border-blue-200 dark:border-blue-700 text-blue-600 dark:text-blue-400'
+                                                : 'bg-white dark:bg-slate-900 border-slate-200 dark:border-slate-800 text-slate-500 dark:text-slate-400 hover:border-blue-100 dark:hover:border-blue-900'
                                                 }`}
                                         >
                                             {cat}

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Property, Tenant, Payment } from '../types';
 import { Users, Coins, AlertCircle, Mail, History, Sparkles, X, ChevronRight, UserPlus } from 'lucide-react';
 import DocumentManager from './DocumentManager';
@@ -10,6 +10,7 @@ interface TenantsSectionProps {
     onGenerateReminder: (tenant: Tenant) => Promise<string | null>;
     onAnalyzeLedger: (tenant: Tenant) => Promise<string | null>;
     onAddPayment: (tenant: Tenant, payment: Partial<Payment>) => void;
+    initialSelectedTenantId?: string;
 }
 
 const TenantsSection: React.FC<TenantsSectionProps> = ({
@@ -18,10 +19,11 @@ const TenantsSection: React.FC<TenantsSectionProps> = ({
     onEditTenant,
     onGenerateReminder,
     onAnalyzeLedger,
-    onAddPayment
+    onAddPayment,
+    initialSelectedTenantId
 }) => {
     const [selectedTenantId, setSelectedTenantId] = useState<string | null>(
-        property.tenants.length > 0 ? property.tenants[0].id : null
+        initialSelectedTenantId || (property.tenants.length > 0 ? property.tenants[0].id : null)
     );
     const [isLedgerOpen, setIsLedgerOpen] = useState(false);
     const [generatedReminder, setGeneratedReminder] = useState<string | null>(null);
@@ -41,8 +43,21 @@ const TenantsSection: React.FC<TenantsSectionProps> = ({
         summary: ''
     });
     const fileInputRef = React.useRef<HTMLInputElement>(null);
+    const tenantListRef = useRef<HTMLDivElement>(null);
+    const highlightedTenantRef = useRef<HTMLButtonElement>(null);
 
     const activeTenant = property.tenants.find(t => t.id === selectedTenantId);
+
+    // Auto-select and scroll to initial tenant if specified
+    useEffect(() => {
+        if (initialSelectedTenantId) {
+            setSelectedTenantId(initialSelectedTenantId);
+            // Scroll to the tenant in the list
+            setTimeout(() => {
+                highlightedTenantRef.current?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            }, 100);
+        }
+    }, [initialSelectedTenantId]);
 
     const handleGenerateReminder = async () => {
         if (!activeTenant) return;
@@ -96,10 +111,13 @@ const TenantsSection: React.FC<TenantsSectionProps> = ({
                         {property.tenants.map(tenant => (
                             <button
                                 key={tenant.id}
+                                ref={tenant.id === initialSelectedTenantId ? highlightedTenantRef : null}
                                 onClick={() => setSelectedTenantId(tenant.id)}
                                 className={`w-full text-left p-4 rounded-2xl transition-all flex items-center justify-between group ${selectedTenantId === tenant.id
-                                    ? 'bg-white shadow-md ring-1 ring-slate-200'
-                                    : 'hover:bg-white/50'
+                                    ? 'bg-white shadow-md ring-2 ring-blue-500'
+                                    : tenant.id === initialSelectedTenantId
+                                        ? 'bg-blue-50 ring-2 ring-blue-300 animate-pulse'
+                                        : 'hover:bg-white/50'
                                     }`}
                             >
                                 <div className="flex items-center gap-3 min-w-0">

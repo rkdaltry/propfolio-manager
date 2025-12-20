@@ -161,6 +161,8 @@ export interface Property {
   transactions: FinancialTransaction[]; // Property specific income/expenses
   maintenanceTickets: MaintenanceTicket[]; // New field
   coordinates?: { lat: number; lng: number }; // For Map Visualization
+  isDeleted?: boolean; // Soft delete flag
+  deletedAt?: string; // Timestamp for deletion
 }
 
 export interface DashboardStats {

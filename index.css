@@ -1,38 +1,11 @@
 @import "tailwindcss";
 
-@theme {
-  --color-slate-50: rgb(var(--color-base-50));
-  --color-slate-100: rgb(var(--color-base-100));
-  --color-slate-200: rgb(var(--color-base-200));
-  --color-slate-300: rgb(var(--color-base-300));
-  --color-slate-400: rgb(var(--color-base-400));
-  --color-slate-500: rgb(var(--color-base-500));
-  --color-slate-600: rgb(var(--color-base-600));
-  --color-slate-700: rgb(var(--color-base-700));
-  --color-slate-800: rgb(var(--color-base-800));
-  --color-slate-850: rgb(var(--color-base-850));
-  --color-slate-900: rgb(var(--color-base-900));
-
-  --color-blue-50: rgb(var(--color-primary-50));
-  --color-blue-100: rgb(var(--color-primary-100));
-  --color-blue-200: rgb(var(--color-primary-200));
-  --color-blue-300: rgb(var(--color-primary-300));
-  --color-blue-400: rgb(var(--color-primary-400));
-  --color-blue-500: rgb(var(--color-primary-500));
-  --color-blue-600: rgb(var(--color-primary-600));
-  --color-blue-700: rgb(var(--color-primary-700));
-
-  --font-sans: var(--font-main), Inter, system-ui, sans-serif;
-}
-
 @layer base {
   body {
-    background-color: var(--color-base-200);
-    color: var(--color-base-900);
-    font-family: var(--font-main), Inter, sans-serif;
-    @apply transition-colors duration-300 selection:bg-blue-500 selection:text-white;
+    font-family: Inter, system-ui, sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    @apply bg-slate-100 text-slate-900 dark:bg-slate-950 dark:text-slate-100 transition-colors duration-300;
   }
 
   /* Custom scrollbar */
@@ -60,23 +33,15 @@
   }
 
   .premium-card {
-    @apply bg-white/80 dark:bg-slate-900/60 backdrop-blur-md border border-slate-200/50 dark:border-slate-800/50 shadow-sm hover:shadow-2xl hover:shadow-blue-500/10 dark:hover:shadow-blue-500/5 transition-all duration-500 hover:-translate-y-1.5 rounded-[2rem];
+    @apply bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-800 shadow-sm hover:shadow-xl transition-all duration-300 rounded-2xl;
   }
 
   .glass-card {
-    @apply bg-white/40 dark:bg-slate-900/40 backdrop-blur-2xl border border-white/20 dark:border-slate-800/20 shadow-xl;
-  }
-
-  .nav-item-active {
-    @apply bg-gradient-to-r from-blue-600 to-indigo-600 text-white shadow-xl shadow-blue-600/30 font-bold dark:shadow-blue-900/40;
-  }
-
-  .nav-item-hover {
-    @apply text-slate-500 dark:text-slate-400 hover:bg-white dark:hover:bg-slate-800 hover:text-slate-900 dark:hover:text-white hover:shadow-sm;
+    @apply bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl border border-slate-200/50 dark:border-slate-800/50 shadow-lg;
   }
 
   .gradient-text {
-    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600 dark:from-blue-400 dark:to-indigo-400;
+    @apply bg-clip-text text-transparent bg-gradient-to-r from-blue-600 to-indigo-600;
   }
 }
 
@@ -87,14 +52,6 @@
 
   .animate-slide-up {
     animation: slideUp 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .animate-slide-left {
-    animation: slideLeft 0.5s cubic-bezier(0.16, 1, 0.3, 1);
-  }
-
-  .animate-pulse-slow {
-    animation: pulse 4s cubic-bezier(0.4, 0, 0.6, 1) infinite;
   }
 
   @keyframes fadeIn {
@@ -116,32 +73,6 @@
     to {
       opacity: 1;
       transform: translateY(0);
-    }
-  }
-
-  @keyframes slideLeft {
-    from {
-      opacity: 0;
-      transform: translateX(20px);
-    }
-
-    to {
-      opacity: 1;
-      transform: translateX(0);
-    }
-  }
-
-  @keyframes pulse {
-
-    0%,
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
-
-    50% {
-      opacity: .8;
-      transform: scale(1.05);
     }
   }
 }

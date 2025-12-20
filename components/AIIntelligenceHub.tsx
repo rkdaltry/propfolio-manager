@@ -14,7 +14,11 @@ import {
     Database,
     Search
 } from 'lucide-react';
+import { createWorker } from 'tesseract.js';
+import * as pdfjsLib from 'pdfjs-dist';
+pdfjsLib.GlobalWorkerOptions.workerSrc = `//cdnjs.cloudflare.com/ajax/libs/pdf.js/${pdfjsLib.version}/pdf.worker.min.js`;
 import { useData } from '../DataContext';
+import { extractTenantData } from '../services/geminiService';
 import { Property, Tenant } from '../types';
 
 interface ExtractedData {
@@ -39,48 +43,116 @@ const AIIntelligenceHub: React.FC = () => {
     ];
 
     const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+        console.log('[AIHub] handleFileSelect triggered');
         if (e.target.files && e.target.files[0]) {
-            setSelectedFile(e.target.files[0]);
-            simulateOCR();
+            const file = e.target.files[0];
+            console.log('[AIHub] File selected:', file.name, file.type);
+            setSelectedFile(file);
+            performRealOCR(file);
+        } else {
+            console.log('[AIHub] No file in selection event');
         }
     };
 
-    const simulateOCR = () => {
+    const performRealOCR = async (file: File) => {
         setIsProcessing(true);
         setProcessingStep(0);
         setExtractedData(null);
 
-        // Step through simulation
-        const interval = setInterval(() => {
-            setProcessingStep(prev => {
-                if (prev >= steps.length - 1) {
-                    clearInterval(interval);
-                    finishExtraction();
-                    return prev;
+        try {
+            let extractedFields: any = null;
+            setProcessingStep(1); // Analyzing Structure
+
+            if (file.type === 'application/pdf') {
+                const arrayBuffer = await file.arrayBuffer();
+                const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
+                const pdf = await loadingTask.promise;
+
+                const pagesToProcess = Math.min(pdf.numPages, 2); // Process first 2 pages
+                console.log('[AIHub] Processing PDF -', pdf.numPages, 'total pages, extracting first', pagesToProcess);
+                console.log('[AIHub] Using multi-page image extraction for complete tenant data');
+
+                // Convert first 2 pages to images and combine for Gemini Vision
+                const pageImages: string[] = [];
+                for (let pageNum = 1; pageNum <= pagesToProcess; pageNum++) {
+                    const page = await pdf.getPage(pageNum);
+                    const viewport = page.getViewport({ scale: 2.0 }); // Slightly lower scale for multi-page
+                    const canvas = document.createElement('canvas');
+                    const context = canvas.getContext('2d')!;
+                    canvas.height = viewport.height;
+                    canvas.width = viewport.width;
+                    await page.render({ canvasContext: context, viewport }).promise;
+                    const base64Data = canvas.toDataURL('image/jpeg', 0.90).split(',')[1];
+                    pageImages.push(base64Data);
+                    console.log(`[AIHub] Converted page ${pageNum} to image, size:`, Math.round(base64Data.length / 1024), 'KB');
                 }
-                return prev + 1;
+
+                setProcessingStep(2); // Extracting Entities
+                // Pass multiple images to the extraction function
+                extractedFields = await extractTenantData(pageImages, 'images', 'image/jpeg');
+            } else {
+                // Image - Use Gemini Multimodal
+                setProcessingStep(1); // Analyzing Structure
+                const reader = new FileReader();
+                const base64Promise = new Promise<string>((resolve) => {
+                    reader.onload = () => {
+                        const base64 = (reader.result as string).split(',')[1];
+                        resolve(base64);
+                    };
+                });
+                reader.readAsDataURL(file);
+                const base64Data = await base64Promise;
+
+                setProcessingStep(2); // Extracting Entities
+                extractedFields = await extractTenantData(base64Data, 'image', file.type);
+            }
+
+            setProcessingStep(3); // Validating Data Point Mapping
+
+            if (extractedFields) {
+                setExtractedData({
+                    type: 'tenant',
+                    confidence: 0.98,
+                    fields: {
+                        ...extractedFields,
+                        propertyId: properties[0]?.id || 'prop_1'
+                    }
+                });
+            } else {
+                throw new Error("AI failed to extract structured data");
+            }
+            setIsProcessing(false);
+
+        } catch (error) {
+            console.error("Extraction failed:", error);
+            setIsProcessing(false);
+            alert("Digital Brain Flinched: AI extraction failed. Falling back to manual entry mode.");
+            // Fallback to a clear editable mock if error
+            setExtractedData({
+                type: 'tenant',
+                confidence: 0.5,
+                fields: {
+                    name: "",
+                    email: "",
+                    phone: "",
+                    startDate: new Date().toISOString().split('T')[0],
+                    rentAmount: 0,
+                    depositAmount: 0,
+                    propertyId: properties[0]?.id || 'prop_1'
+                }
             });
-        }, 1500);
+        }
     };
 
-    const finishExtraction = () => {
-        // Mock extracted data based on a "Tenancy Agreement"
-        const mockResult: ExtractedData = {
-            type: 'tenant',
-            confidence: 0.98,
+    const handleFieldUpdate = (key: string, value: any) => {
+        if (!extractedData) return;
+        setExtractedData({
+            ...extractedData,
             fields: {
-                name: "Alexander Sterling",
-                email: "a.sterling@example.com",
-                phone: "+44 7700 900456",
-                startDate: "2024-03-01",
-                rentAmount: 2450,
-                depositAmount: 3675,
-                propertyId: properties[0]?.id || 'mock-id'
+                ...extractedData.fields,
+                [key]: value
             }
-        };
-
-        setExtractedData(mockResult);
-        setIsProcessing(false);
+        });
     };
 
     const handleSync = () => {
@@ -119,6 +191,10 @@ const AIIntelligenceHub: React.FC = () => {
         setExtractedData(null);
         setSelectedFile(null);
         setIsProcessing(false);
+        // Reset file input to allow selecting the same file again or new files
+        if (fileInputRef.current) {
+            fileInputRef.current.value = '';
+        }
     };
 
     return (
@@ -137,9 +213,7 @@ const AIIntelligenceHub: React.FC = () => {
                 {!extractedData && !isProcessing && (
                     <button
                         onClick={() => {
-                            // Demo Mode: Trigger simulation directly
-                            // In a real app, this would open file dialog
-                            simulateOCR();
+                            fileInputRef.current?.click();
                         }}
                         className="flex items-center gap-3 px-8 py-5 bg-blue-600 hover:bg-blue-700 text-white rounded-[2rem] font-black uppercase tracking-widest shadow-2xl shadow-blue-500/30 transition-all transform active:scale-95 group"
                     >
@@ -219,12 +293,89 @@ const AIIntelligenceHub: React.FC = () => {
                                 </div>
 
                                 <div className="grid grid-cols-2 gap-6 mb-10">
-                                    {Object.entries(extractedData.fields).map(([key, value]) => (
-                                        <div key={key} className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
-                                            <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">{key.replace(/([A-Z])/g, ' $1')}</p>
-                                            <p className="font-bold text-slate-900 dark:text-white text-lg">{typeof value === 'number' ? `£${value.toLocaleString()}` : value}</p>
+                                    {/* Name Field */}
+                                    <div className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Name</p>
+                                        <input
+                                            type="text"
+                                            value={extractedData.fields.name || ''}
+                                            onChange={(e) => handleFieldUpdate('name', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                        />
+                                    </div>
+
+                                    {/* Email Field - Full width to prevent truncation */}
+                                    <div className="col-span-2 space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Email</p>
+                                        <input
+                                            type="email"
+                                            value={extractedData.fields.email || ''}
+                                            onChange={(e) => handleFieldUpdate('email', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                        />
+                                    </div>
+
+                                    {/* Phone Field */}
+                                    <div className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Phone</p>
+                                        <input
+                                            type="tel"
+                                            value={extractedData.fields.phone || ''}
+                                            onChange={(e) => handleFieldUpdate('phone', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                        />
+                                    </div>
+
+                                    {/* Start Date Field - Text input for flexibility */}
+                                    <div className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Start Date</p>
+                                        <input
+                                            type="date"
+                                            value={extractedData.fields.startDate || ''}
+                                            onChange={(e) => handleFieldUpdate('startDate', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                        />
+                                    </div>
+
+                                    {/* Rent Amount Field */}
+                                    <div className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Rent Amount</p>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-slate-400">£</span>
+                                            <input
+                                                type="number"
+                                                value={extractedData.fields.rentAmount || 0}
+                                                onChange={(e) => handleFieldUpdate('rentAmount', Number(e.target.value))}
+                                                className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                            />
                                         </div>
-                                    ))}
+                                    </div>
+
+                                    {/* Deposit Amount Field */}
+                                    <div className="space-y-2 p-5 bg-slate-50 dark:bg-slate-800/50 rounded-2xl border border-slate-100 dark:border-slate-800 group hover:border-blue-300 transition-all">
+                                        <p className="text-[10px] font-black text-slate-400 uppercase tracking-widest">Deposit Amount</p>
+                                        <div className="flex items-center gap-1">
+                                            <span className="text-slate-400">£</span>
+                                            <input
+                                                type="number"
+                                                value={extractedData.fields.depositAmount || 0}
+                                                onChange={(e) => handleFieldUpdate('depositAmount', Number(e.target.value))}
+                                                className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1"
+                                            />
+                                        </div>
+                                    </div>
+
+                                    {/* Property Address Field - Full width */}
+                                    <div className="col-span-2 space-y-2 p-5 bg-emerald-50 dark:bg-emerald-900/20 rounded-2xl border border-emerald-100 dark:border-emerald-900 group hover:border-emerald-300 transition-all">
+                                        <p className="text-[10px] font-black text-emerald-600 uppercase tracking-widest">Property Address (Extracted)</p>
+                                        <input
+                                            type="text"
+                                            value={extractedData.fields.propertyAddress || ''}
+                                            onChange={(e) => handleFieldUpdate('propertyAddress', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white text-lg focus:outline-none focus:ring-1 focus:ring-emerald-500 rounded px-1"
+                                            placeholder="Property address from document"
+                                        />
+                                    </div>
                                 </div>
 
                                 <div className="flex items-center gap-4">
@@ -233,9 +384,15 @@ const AIIntelligenceHub: React.FC = () => {
                                             <Database size={18} className="text-blue-600" />
                                             <p className="text-xs font-black text-blue-600 uppercase tracking-widest">Destination Asset</p>
                                         </div>
-                                        <p className="font-bold text-slate-900 dark:text-white">
-                                            {properties.find(p => p.id === extractedData.fields.propertyId)?.address || "Unassigned Asset"}
-                                        </p>
+                                        <select
+                                            value={extractedData.fields.propertyId}
+                                            onChange={(e) => handleFieldUpdate('propertyId', e.target.value)}
+                                            className="w-full bg-transparent font-bold text-slate-900 dark:text-white focus:outline-none focus:ring-1 focus:ring-blue-500 rounded px-1 appearance-none cursor-pointer"
+                                        >
+                                            {properties.map(p => (
+                                                <option key={p.id} value={p.id} className="text-slate-900">{p.address.split(',')[0]}</option>
+                                            ))}
+                                        </select>
                                     </div>
                                     <button
                                         onClick={handleSync}

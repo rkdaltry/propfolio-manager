@@ -39,7 +39,7 @@ const DocumentsPage: React.FC = () => {
   };
 
   return (
-    <div className="p-8 lg:p-10 w-full mx-auto animate-fade-in pb-20 max-w-7xl">
+    <div className="p-8 lg:px-16 xl:px-24 lg:py-10 w-full mx-auto animate-fade-in pb-20">
       {/* Header Area */}
       <div className="mb-10">
         <h1 className="text-3xl font-black text-slate-900 dark:text-slate-50 mb-2">Portfolio Documents</h1>
